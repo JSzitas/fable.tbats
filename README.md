@@ -9,7 +9,7 @@
 [![Codecov test
 coverage](https://codecov.io/gh/JSzitas/autodep/branch/main/graph/badge.svg)](https://codecov.io/gh/JSzitas/autodep?branch=main)
 [![Lifecycle:
-experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+stable](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/fable.tbats)](https://CRAN.R-project.org/package=fable.tbats)
 <!-- badges: end -->
