@@ -27,3 +27,8 @@ Currently only:
 ``` r
 pak::pkg_install("JSzitas/fable.tbats")
 ```
+
+# TODO:
+
+Test against the forecast package (mainly for multiple seasonality
+cases), or against the examples in fasster
