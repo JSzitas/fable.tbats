@@ -1,9 +1,14 @@
 train_bats <- function(.data, specials, ...) {
 
-  # .data is a tsibble - therefore we can convert it to a ts rather easily
-  y <- stats::as.ts(.data)
-  # parse arguments to tbats
+  # parse arguments to bats
   parameters <- specials$parameters[[1]]
+
+  if( !is.null( parameters$seasonal_periods )) {
+    y <- unclass(.data)[[tsibble::measured_vars(.data)]]
+  }
+  else {
+    y <- stats::as.ts(.data)
+  }
 
   # always set use.parallel to FALSE - since nested parallelism would cause problems
   # and the ONLY situatiion where we avoid that is when someone is running a single
