@@ -25,10 +25,9 @@ knitr::opts_chunk$set(
 fable.tbats is a wrapper around the implementation of **tbats** from the [forecast](https://github.com/robjhyndman/forecast) package. 
 This integrates seamlessly, and can be used just like any model in **fable**: 
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(tsibbledata)
 library(fable)
-library(fabletools)
 library(fable.tbats)
 library(dplyr)
 
@@ -43,8 +42,9 @@ models <- train %>%
          bats = BATS(Lynx),
          tbats = TBATS(Lynx)
          ) 
+# generate forecasts on the test set
 forecasts <- forecast(models, test)
-
+# visualize
 autoplot(forecasts, pelt)
 ```
 

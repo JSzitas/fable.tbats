@@ -21,21 +21,8 @@ integrates seamlessly, and can be used just like any model in **fable**:
 ``` r
 library(tsibbledata)
 library(fable)
-#> Loading required package: fabletools
-library(fabletools)
 library(fable.tbats)
-#> Registered S3 method overwritten by 'quantmod':
-#>   method            from
-#>   as.zoo.data.frame zoo
 library(dplyr)
-#> 
-#> Attaching package: 'dplyr'
-#> The following objects are masked from 'package:stats':
-#> 
-#>     filter, lag
-#> The following objects are masked from 'package:base':
-#> 
-#>     intersect, setdiff, setequal, union
 
 # fit models to the pelt dataset until 1930:
 train <- pelt %>% 
