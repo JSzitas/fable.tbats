@@ -15,8 +15,17 @@ status](https://www.r-pkg.org/badges/version/fable.tbats)](https://CRAN.R-projec
 <!-- badges: end -->
 
 fable.tbats is a wrapper around the implementation of **tbats** from the
-[forecast](https://github.com/robjhyndman/forecast) package. This
-integrates seamlessly, and can be used just like any model in **fable**:
+[forecast](https://github.com/robjhyndman/forecast) package.
+
+## Installation
+
+``` r
+pak::pkg_install("JSzitas/fable.tbats")
+```
+
+## Usage
+
+Used just like any model in **fable**:
 
 ``` r
 library(tsibbledata)
@@ -35,8 +44,9 @@ models <- train %>%
          bats = BATS(Lynx),
          tbats = TBATS(Lynx)
          ) 
+# generate forecasts on the test set
 forecasts <- forecast(models, test)
-
+# visualize
 autoplot(forecasts, pelt)
 ```
 
@@ -89,11 +99,3 @@ significant slow-down if you are only modelling a single/few time
 series. Nonetheless, in those cases the
 [fasster](https://github.com/tidyverts/fasster) package might be much
 better suited for your use case anyways.
-
-## Installation
-
-Currently only:
-
-``` r
-pak::pkg_install("JSzitas/fable.tbats")
-```
