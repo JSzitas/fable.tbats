@@ -33,15 +33,12 @@ forecast.TBATS <- function( object, new_data = NULL, specials = NULL, bootstrap 
 }
 #' @importFrom generics refit
 #' @export
-refit.TBATS <- function( object, new_data, specials = NULL, reestimate = FALSE,  ... ) {
-  y <- unclass(new_data)[[measured_vars(new_data)]]
-  model_list <- list( object[["model_pars"]] )
+refit.TBATS <- function( object, new_data, specials = NULL,  ... ) {
+  y <- unclass(new_data)[[tsibble::measured_vars(new_data)]]
+  model_list <- object[["model_pars"]]
 
-  if( reestimate ) {
-    model_list <- c( model_list, list( model = object[["fit"]]) )
-  }
   model <- do.call( forecast::tbats, c( list( y = stats::as.ts(y) ),
-                               model_list )
+                                        model_list )
   )
   structure(
     list(
@@ -54,39 +51,4 @@ refit.TBATS <- function( object, new_data, specials = NULL, reestimate = FALSE, 
     ),
     class = "TBATS"
   )
-}
-#' @importFrom generics components
-#' @export
-components.TBATS <- function( object, ... ) {
-  comp <- forecast::tbats.components( object[["fit"]] )
-
-  comp <- tsibble::as_tsibble(comp)
-  comp <- tidyr::pivot_wider( as.data.frame(comp), names_from = "key")
-
-  box_cox_lambda <- object$fit$lambda
-  if (!is.null(box_cox_lambda)) {
-
-    comp_subset <- dplyr::select( comp,
-                                  tidyselect::matches("level|observed|season") )
-    non_trasnformed <- dplyr::select( comp,
-                                      !tidyselect::matches("level|observed|season") )
-
-    comp <- purrr::map_dfc( comp_subset,
-                            fabletools::inv_box_cox,
-                            lambda = box_cox_lambda )
-    comp <- dplyr::bind_cols( non_trasnformed, comp )
-    comp <- dplyr::relocate( comp,
-                             c("index", "observed", "level"),
-                             .before = tidyselect::everything() )
-
-  }
-
-  comp <- dplyr::rename_with( comp, ~ object[["target"]], .cols = "observed")
-  comp <- tsibble::as_tsibble(comp, index = "index")
-
-  fabletools::as_dable( comp,
-                        #index = "index",
-                        response = object[["target"]],
-                        # seasons =
-                        method = "TBATS")
 }

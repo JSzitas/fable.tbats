@@ -20,7 +20,7 @@ train_tbats <- function(.data, specials, ...) {
   structure(
     list(
       fit = model,
-      resid = stats::residuals(model),
+      resid = c(y) - stats::fitted(model),
       fitted = stats::fitted(model),
       target = tsibble::measured_vars(.data),
       model_summary = as.character(model),

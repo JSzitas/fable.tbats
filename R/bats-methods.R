@@ -33,15 +33,12 @@ forecast.BATS <- function( object, new_data = NULL, specials = NULL, bootstrap =
 }
 #' @importFrom generics refit
 #' @export
-refit.BATS <- function( object, new_data, specials = NULL, reestimate = FALSE,  ... ) {
-  y <- unclass(new_data)[[measured_vars(new_data)]]
-  model_list <- list( object[["model_pars"]] )
+refit.BATS <- function( object, new_data, specials = NULL,  ... ) {
+  y <- unclass(new_data)[[tsibble::measured_vars(new_data)]]
+  model_list <- object[["model_pars"]]
 
-  if( reestimate ) {
-    model_list <- c( model_list, list( model = object[["fit"]]) )
-  }
-  model <- do.call( forecast::bats, c( list( y = stats::as.ts(y) ),
-                                       model_list )
+  model <- do.call( forecast::tbats, c( list( y = stats::as.ts(y) ),
+                                        model_list )
   )
   structure(
     list(
