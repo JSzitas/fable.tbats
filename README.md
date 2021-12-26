@@ -7,7 +7,7 @@
 
 [![R-CMD-check](https://github.com/JSzitas/fable.tbats/workflows/R-CMD-check/badge.svg)](https://github.com/JSzitas/fable.tbats/actions)
 [![Codecov test
-coverage](https://codecov.io/gh/JSzitas/autodep/branch/main/graph/badge.svg)](https://codecov.io/gh/JSzitas/autodep?branch=main)
+coverage](https://codecov.io/gh/JSzitas/fable.tbats/branch/main/graph/badge.svg)](https://codecov.io/gh/JSzitas/fable.tbats?branch=main)
 [![Lifecycle:
 stable](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![CRAN
