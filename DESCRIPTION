@@ -17,6 +17,7 @@ Imports:
     tsibble,
     fabletools,
     rlang,
+    slider,
     generics
 Suggests: 
     tsibbledata,
