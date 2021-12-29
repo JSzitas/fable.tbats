@@ -1,11 +1,12 @@
 Package: fable.tbats
 Type: Package
 Title: Fable Wrapper for TBATS
-Version: 0.2.1
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Version: 0.3.1
+Author: Juraj Szitas
+Maintainer: <juraj.szitas13@gmail.com>
+Description: A fable wrapper for TBATS (as implemented in the forecast package.)
+    A replacement until fasster can provide an automatic algorithm for model
+    selection.
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
