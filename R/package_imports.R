@@ -12,4 +12,7 @@
 #' @importFrom tsibble is_regular
 #' @importFrom fabletools new_model_definition
 #' @importFrom rlang enquo
+#' @importFrom stats spec.ar
+#' @importFrom slider slide_dbl
+#' @importFrom stats na.omit
 NULL

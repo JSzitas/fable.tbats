@@ -2,14 +2,14 @@ train_tbats <- function(.data, specials, ...) {
 
   # parse arguments to tbats
   parameters <- specials$parameters[[1]]
+  y <- unclass(.data)[[tsibble::measured_vars(.data)]]
 
-  if( !is.null( parameters$seasonal_periods )) {
-    y <- unclass(.data)[[tsibble::measured_vars(.data)]]
-  }
-  else {
+  if( is.null( parameters$seasonal.periods )) {
     y <- stats::as.ts(.data)
   }
-
+  else if ( parameters$seasonal.periods == "auto" ) {
+    parameters$seasonal.periods <- find_seasonalities( y )
+  }
   # always set use.parallel to FALSE - since nested parallelism would cause problems
   # and the ONLY situatiion where we avoid that is when someone is running a single
   # TBATS model on a single time series, OR running all models sequentially
@@ -37,7 +37,7 @@ specials_tbats <- fabletools::new_specials(
   parameters = function( trend = NULL,
                          damped = NULL,
                          box_cox = NULL,
-                         seasonal_periods = NULL,
+                         seasonal_periods = "auto",
                          arma_errors = TRUE,
                          bias_adj = FALSE,
                          bc_lower = 0,

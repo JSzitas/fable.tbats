@@ -2,12 +2,13 @@ train_bats <- function(.data, specials, ...) {
 
   # parse arguments to bats
   parameters <- specials$parameters[[1]]
+  y <- unclass(.data)[[tsibble::measured_vars(.data)]]
 
-  if( !is.null( parameters$seasonal_periods )) {
-    y <- unclass(.data)[[tsibble::measured_vars(.data)]]
-  }
-  else {
+  if( is.null( parameters$seasonal.periods )) {
     y <- stats::as.ts(.data)
+  }
+  else if ( parameters$seasonal.periods == "auto" ) {
+    parameters$seasonal.periods <- find_seasonalities( y )
   }
 
   # always set use.parallel to FALSE - since nested parallelism would cause problems
