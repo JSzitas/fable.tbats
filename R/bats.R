@@ -56,7 +56,7 @@ specials_bats <- fabletools::new_specials(
   },
   xreg = function(...) {
     # This model doesn't support exogenous regressors, time to error.
-    stop("Exogenous regressors aren't supported by `soothsayer()`")
+    stop("Exogenous regressors aren't supported by `BATS()`")
   },
   .required_specials = c("parameters")
 )

@@ -55,7 +55,7 @@ specials_tbats <- fabletools::new_specials(
   },
   xreg = function(...) {
     # This model doesn't support exogenous regressors, time to error.
-    stop("Exogenous regressors aren't supported by `soothsayer()`")
+    stop("Exogenous regressors aren't supported by `TBATS()`")
   },
   .required_specials = c("parameters")
 )
