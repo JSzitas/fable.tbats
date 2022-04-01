@@ -14,7 +14,7 @@ test_that("TBATS can be trained", {
 
   expect_equal( class(model), c("mdl_df", "tbl_df", "tbl", "data.frame") )
   expect_equal( as.character(model$tbats[[1]][[1]][["fit"]]),
-                "BATS(0.168, {3,2}, 1, -)" )
+                "TBATS(0.611, {2,2}, -, {<10,4>})" )
 })
 
 test_that("Passing arguments to TBATS works", {

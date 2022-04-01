@@ -52,8 +52,11 @@ find_seasonalities <- function( y, max_iter = 5, aggregator = sum, upper_limit =
       break;
     }
     periods[[iter]] <- last_period
-    y <- slider::slide_dbl(y, .f = aggregator, .step = last_period )
-    y <- stats::na.omit(y)
+    y <- stats::aggregate(
+      stats::ts(y, freq = last_period), # where last_period is last infered periodicity
+      nfrequency = 1, # nfrequency always set to 1
+      FUN = aggregator # ie mean
+    )
   }
   x <- cumprod( unlist(periods))
   x[ x < upper_limit ]

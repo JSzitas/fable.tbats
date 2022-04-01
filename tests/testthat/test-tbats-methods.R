@@ -10,7 +10,7 @@ model <- fabletools::model(pelt,  tbats = TBATS(Lynx) )
 test_that("Utilities for TBATS work", {
   # residuals
   expect_equal( sum(residuals(model[[1]][[1]][["fit"]])),
-                81778,
+                76865,
                 tolerance = 0.05
                 )
   # fitted
@@ -23,7 +23,7 @@ test_that("Utilities for TBATS work", {
 test_that( "Forecasts for TBATS work", {
   fcsts <- fabletools::forecast(model, h = 3)$.mean
   expect_equal( fcsts,
-                c(41091, 41973, 38789),
+                c(42375, 34477, 24881),
                 tolerance = 0.1)
 })
 
