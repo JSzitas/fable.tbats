@@ -1,3 +1,4 @@
+# nocov start
 msts <- function (data, seasonal.periods, ts.frequency = floor(max(seasonal.periods)), 
                   ...) 
 {
@@ -3117,5 +3118,5 @@ as.character.bats <- function (x, ...)
   }
   return(name)
 }
-
+# nocov end
 
