@@ -16,9 +16,7 @@ train_bats <- function(.data, specials, ...) {
   # TBATS model on a single time series, OR running all models sequentially
   # by setting future::plan("sequential") - so they are probably not too worried
   # about this being slow.
-  model <- do.call( forecast::bats,
-                    c( list(y, use.parallel = FALSE),
-                       parameters)
+  model <- do.call( bats, c( list(y, use.parallel = FALSE), parameters)
   )
 
   structure(

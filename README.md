@@ -14,8 +14,9 @@ stable](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://lifecy
 status](https://www.r-pkg.org/badges/version/fable.tbats)](https://CRAN.R-project.org/package=fable.tbats)
 <!-- badges: end -->
 
-fable.tbats is a wrapper around the implementation of **tbats** from the
-[forecast](https://github.com/robjhyndman/forecast) package.
+**fable.tbats** is a wrapper around the implementation of **tbats**
+originally from the [forecast](https://github.com/robjhyndman/forecast)
+package, though it now works without this dependency.
 
 ## Installation
 
@@ -55,26 +56,26 @@ autoplot(forecasts, pelt)
 Similarly, accuracy calculation works:
 
 ``` r
-train_accuracies <- accuracies <- accuracy(models)
+train_accuracies <- accuracy(models)
 knitr::kable(train_accuracies)
 ```
 
-| .model | .type    |        ME |     RMSE |      MAE |        MPE |     MAPE |      MASE |     RMSSE |      ACF1 |
-|:-------|:---------|----------:|---------:|---------:|-----------:|---------:|----------:|----------:|----------:|
-| ets    | Training | -77.59902 | 12891.89 | 9824.778 | -20.073965 | 52.20456 | 0.9934890 | 0.9948210 | 0.5352087 |
-| bats   | Training | 936.16014 |  7884.54 | 5667.879 |  -7.236549 | 27.18220 | 0.5731402 | 0.6084217 | 0.1853953 |
-| tbats  | Training | 936.16014 |  7884.54 | 5667.879 |  -7.236549 | 27.18220 | 0.5731402 | 0.6084217 | 0.1853953 |
+| .model | .type    |         ME |      RMSE |      MAE |        MPE |     MAPE |      MASE |     RMSSE |      ACF1 |
+|:-------|:---------|-----------:|----------:|---------:|-----------:|---------:|----------:|----------:|----------:|
+| ets    | Training |  -77.59902 | 12891.891 | 9824.778 | -20.073965 | 52.20456 | 0.9934890 | 0.9948210 | 0.5352087 |
+| bats   | Training | 1768.39519 |  8540.088 | 6105.791 |  -2.816831 | 27.18703 | 0.6174222 | 0.6590080 | 0.1656173 |
+| tbats  | Training | 1653.48581 |  7955.411 | 5577.862 |  -3.003260 | 26.36744 | 0.5640376 | 0.6138906 | 0.0367109 |
 
 ``` r
 test_accuracies <- accuracy(forecasts, test)
 knitr::kable(test_accuracies)
 ```
 
-| .model | .type |       ME |      RMSE |      MAE |        MPE |     MAPE | MASE | RMSSE |      ACF1 |
-|:-------|:------|---------:|----------:|---------:|-----------:|---------:|-----:|------:|----------:|
-| bats   | Test  | 1649.878 |  5308.609 | 4495.617 |   3.225424 | 25.50999 |  NaN |   NaN | 0.2442253 |
-| ets    | Test  | 1061.473 | 10669.984 | 9770.000 | -36.632392 | 71.41690 |  NaN |   NaN | 0.5558575 |
-| tbats  | Test  | 1649.878 |  5308.609 | 4495.617 |   3.225424 | 25.50999 |  NaN |   NaN | 0.2442253 |
+| .model | .type |         ME |      RMSE |       MAE |       MPE |     MAPE | MASE | RMSSE |      ACF1 |
+|:-------|:------|-----------:|----------:|----------:|----------:|---------:|-----:|------:|----------:|
+| bats   | Test  | -10363.643 | 16253.210 | 10829.331 | -40.43004 | 43.33877 |  NaN |   NaN | 0.4460149 |
+| ets    | Test  |   1061.473 | 10669.984 |  9770.000 | -36.63239 | 71.41690 |  NaN |   NaN | 0.5558575 |
+| tbats  | Test  |  -1898.560 |  3444.412 |  3208.959 | -16.86434 | 24.23634 |  NaN |   NaN | 0.1667398 |
 
 As does refitting:
 

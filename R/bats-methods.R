@@ -20,7 +20,7 @@ forecast.BATS <- function( object, new_data = NULL, specials = NULL, bootstrap =
 
   h <- nrow(new_data)
   # set the level to 80 to easily reverse standard error calculation
-  fcst <- forecast::forecast( object[["fit"]], h = h, level = 80 )
+  fcst <- forecast_bats( object[["fit"]], h = h, level = 80 )
   mean_fcst <- c(fcst[["mean"]])
   upper_fcst <- c(fcst[["upper"]])
   # reverse the calculations done in the forecast function to get the standard
@@ -37,7 +37,7 @@ refit.BATS <- function( object, new_data, specials = NULL,  ... ) {
   y <- unclass(new_data)[[tsibble::measured_vars(new_data)]]
   model_list <- object[["model_pars"]]
 
-  model <- do.call( forecast::tbats, c( list( y = stats::as.ts(y) ),
+  model <- do.call( tbats, c( list( y = stats::as.ts(y) ),
                                         model_list )
   )
   structure(

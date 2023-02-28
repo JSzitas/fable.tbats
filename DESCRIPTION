@@ -1,7 +1,7 @@
 Package: fable.tbats
 Type: Package
 Title: Fable Wrapper for TBATS
-Version: 0.3.2
+Version: 0.4.0
 Author: Juraj Szitas
 Maintainer: <juraj.szitas13@gmail.com>
 Description: A fable wrapper for TBATS (as implemented in the forecast package.)
@@ -10,17 +10,20 @@ Description: A fable wrapper for TBATS (as implemented in the forecast package.)
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1
 Imports: 
-    forecast,
     stats,
     distributional,
     tsibble,
     fabletools,
     rlang,
-    generics
+    generics,
+    Rcpp
 Suggests: 
     tsibbledata,
     dplyr,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+LinkingTo: 
+    RcppArmadillo,
+    Rcpp

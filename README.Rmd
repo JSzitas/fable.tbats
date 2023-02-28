@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 [![CRAN status](https://www.r-pkg.org/badges/version/fable.tbats)](https://CRAN.R-project.org/package=fable.tbats)
 <!-- badges: end -->
 
-fable.tbats is a wrapper around the implementation of **tbats** from the [forecast](https://github.com/robjhyndman/forecast) package. 
+**fable.tbats** is a wrapper around the implementation of **tbats** originally from the [forecast](https://github.com/robjhyndman/forecast) package, though it now works without this dependency. 
 
 ## Installation
 
@@ -60,7 +60,7 @@ autoplot(forecasts, pelt)
 Similarly, accuracy calculation works: 
 
 ```{r, }
-train_accuracies <- accuracies <- accuracy(models)
+train_accuracies <- accuracy(models)
 knitr::kable(train_accuracies)
 ```
 

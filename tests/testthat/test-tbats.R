@@ -14,7 +14,7 @@ test_that("TBATS can be trained", {
 
   expect_equal( class(model), c("mdl_df", "tbl_df", "tbl", "data.frame") )
   expect_equal( as.character(model$tbats[[1]][[1]][["fit"]]),
-                "BATS(0.168, {3,2}, 1, -)" )
+                "BATS(0.43, {3,2}, 0.879, -)" )
 })
 
 test_that("Passing arguments to TBATS works", {
@@ -25,7 +25,7 @@ test_that("Passing arguments to TBATS works", {
 
   expect_equal( class(model), c("mdl_df", "tbl_df", "tbl", "data.frame") )
   expect_equal( as.character(model$tbats[[1]][[1]][["fit"]]),
-                "BATS(1, {2,1}, -, -)" )
+                "TBATS(1, {3,1}, -, {<10,1>})" )
 
   model <- fabletools::model(pelt,  tbats = TBATS(Lynx ~ parameters(box_cox = FALSE, arma_errors = FALSE)) )
 
