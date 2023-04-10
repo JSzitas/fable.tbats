@@ -1,7 +1,7 @@
 Package: fable.tbats
 Type: Package
 Title: Fable Wrapper for TBATS
-Version: 0.4.0
+Version: 0.4.1
 Author: Juraj Szitas
 Maintainer: <juraj.szitas13@gmail.com>
 Description: A fable wrapper for TBATS (as implemented in the forecast package.)

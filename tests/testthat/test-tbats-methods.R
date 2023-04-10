@@ -18,6 +18,11 @@ test_that("Utilities for TBATS work", {
                 2463137,
                 tolerance = 0.05
   )
+  # glance
+  expect_equal( sum(unlist(fabletools::glance(model)[,2:7])),
+                57386873,
+                tolerance = 0.05
+  )
 })
 
 test_that( "Forecasts for TBATS work", {

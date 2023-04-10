@@ -53,3 +53,20 @@ refit.BATS <- function( object, new_data, specials = NULL,  ... ) {
   )
 }
 
+#' @importFrom generics glance
+#' @export
+glance.BATS <- function( x, ... ) {
+  
+  model_fit <- x[["fit"]]
+  resid <- x[["resid"]]
+  n_pars <- length(model_fit[["parameters"]][["vect"]])
+  dof <- length(resid) - n_pars
+  sigma2 <- sum(resid^2)/dof
+  loglik <- -x$fit$likelihood/2
+  AICc <- -2 * loglik + (2*(n_pars + 1)*(
+    length(resid)/(length(resid) - 1 - n_pars)))
+  BIC <- -2 * loglik + n_pars * log(length(resid))
+  
+  tsibble::tibble(sigma2 = sigma2, log_lik = loglik, AIC = x$fit$AIC,
+                  AICc = AICc, BIC = BIC, dof = dof)
+}
