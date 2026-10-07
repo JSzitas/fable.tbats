@@ -51,6 +51,7 @@ SEXP updateTBATSGMatrix(SEXP g_s, SEXP gammaBold_s, SEXP alpha_s, SEXP beta_s) {
 		NumericMatrix gammaBold_r(gammaBold_s);
 		arma::mat gammaBold(gammaBold_r.begin(), gammaBold_r.nrow(), gammaBold_r.ncol(), false);
 		arma::mat g(g_r.begin(), g_r.nrow(), g_r.ncol(), false);
+		// this goes first row, first col, last row, last col 
 		g.submat((adjBeta+1), 0,(adjBeta+gammaBold.n_cols), 0) = trans(gammaBold);
 	}
 	//Rprintf("five\n");

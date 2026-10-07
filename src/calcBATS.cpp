@@ -4,7 +4,6 @@ using namespace Rcpp ;
 SEXP calcBATS(SEXP ys, SEXP yHats, SEXP wTransposes, SEXP Fs, SEXP xs, SEXP gs, SEXP es ){
 	BEGIN_RCPP
 
-
 	NumericMatrix yr(ys);
 	NumericMatrix yHatr(yHats);
 	NumericMatrix wTransposer(wTransposes);
@@ -14,7 +13,7 @@ SEXP calcBATS(SEXP ys, SEXP yHats, SEXP wTransposes, SEXP Fs, SEXP xs, SEXP gs, 
 	NumericMatrix er(es);
 
 	int t;
-
+	// these calls are just memory maps - they modify the original data
 	arma::mat y(yr.begin(), yr.nrow(), yr.ncol(), false);
 	arma::mat yHat(yHatr.begin(), yHatr.nrow(), yHatr.ncol(), false);
 	arma::mat wTranspose(wTransposer.begin(), wTransposer.nrow(), wTransposer.ncol(), false);
@@ -68,7 +67,7 @@ SEXP calcBATSFaster(SEXP ys, SEXP yHats, SEXP wTransposes, SEXP Fs, SEXP xs, SEX
 	} else {
 		adjBeta = 0;
 	}
-
+	// these calls are just memory maps - they modify the original data
 	arma::mat y(yr.begin(), yr.nrow(), yr.ncol(), false);
 	arma::mat yHat(yHatr.begin(), yHatr.nrow(), yHatr.ncol(), false);
 	arma::mat wTranspose(wTransposer.begin(), wTransposer.nrow(), wTransposer.ncol(), false);
@@ -77,7 +76,6 @@ SEXP calcBATSFaster(SEXP ys, SEXP yHats, SEXP wTransposes, SEXP Fs, SEXP xs, SEX
 	arma::mat g(gr.begin(), gr.nrow(), gr.ncol(), false);
 	arma::mat e(er.begin(), er.nrow(), er.ncol(), false);
 	arma::mat xNought(xNought_r.begin(), xNought_r.nrow(), xNought_r.ncol(), false);
-
 
 	if(!Rf_isNull(sPeriods_s)) {
 		//One
@@ -261,7 +259,7 @@ SEXP calcWTilda(SEXP wTildaTransposes, SEXP Ds) {
 	NumericMatrix Dr(Ds);
 
 	int t;
-
+  // these calls are just memory maps - they modify the original data
 	arma::mat wTildaTranspose(wTildaTransposer.begin(), wTildaTransposer.nrow(), wTildaTransposer.ncol(), false);
 	arma::mat D(Dr.begin(), Dr.nrow(), Dr.ncol(), false);
 
