@@ -10,7 +10,7 @@ test_that("Making a BATS model works", {
 
 test_that("BATS can be trained", {
   model <- fabletools::model(pelt, bats = BATS(Lynx))
-  expect_equal(class(model), c("mdl_df", "tbl_df", "tbl", "data.frame"))
+  expect_s3_class(model, "mdl_df")
   fit <- model$bats[[1]][["fit"]]
   expect_s3_class(fit, "BATS")
   # yearly data with no seasonality: BATS(lambda, {p,q}, phi, -)

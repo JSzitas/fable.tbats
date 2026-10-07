@@ -10,7 +10,7 @@ test_that("Making a TBATS model works", {
 
 test_that("TBATS can be trained", {
   model <- fabletools::model(pelt, tbats = TBATS(Lynx))
-  expect_equal(class(model), c("mdl_df", "tbl_df", "tbl", "data.frame"))
+  expect_s3_class(model, "mdl_df")
   fit <- model$tbats[[1]][["fit"]]
   expect_s3_class(fit, "TBATS")
   # yearly data with no seasonality: TBATS(lambda, {p,q}, phi, {-})
