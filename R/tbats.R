@@ -1,44 +1,16 @@
 train_tbats <- function(.data, specials, ...) {
-
-  # parse arguments to tbats
-  parameters <- specials$parameters[[1]]
-  y <- unclass(.data)[[tsibble::measured_vars(.data)]]
-
-  if( is.null( parameters$seasonal.periods )) {
-    y <- stats::as.ts(.data)
-  }
-  else if ( parameters$seasonal.periods == "auto" ) {
-    parameters$seasonal.periods <- find_seasonalities( y )
-  }
-  # always set use.parallel to FALSE - since nested parallelism would cause problems
-  # and the ONLY situatiion where we avoid that is when someone is running a single
-  # TBATS model on a single time series, OR running all models sequentially
-  # by setting future::plan("sequential") - so they are probably not too worried
-  # about this being slow.
-  model <- do.call( tbats,c( list(y, use.parallel = FALSE), parameters))
-
-  structure(
-    list(
-      fit = model,
-      resid = c(y) - stats::fitted(model),
-      fitted = stats::fitted(model),
-      target = tsibble::measured_vars(.data),
-      model_summary = as.character(model),
-      model_pars = parameters
-    ),
-    class = "TBATS"
-  )
+  train_bats_tbats(.data, specials, "tbats")
 }
 
 specials_tbats <- fabletools::new_specials(
-  parameters = function( trend = NULL,
-                         damped = NULL,
-                         box_cox = NULL,
-                         seasonal_periods = "auto",
-                         arma_errors = TRUE,
-                         bias_adj = FALSE,
-                         bc_lower = 0,
-                         bc_higher = 1 ) {
+  parameters = function(trend = NULL,
+                        damped = NULL,
+                        box_cox = NULL,
+                        seasonal_periods = "auto",
+                        arma_errors = TRUE,
+                        bias_adj = FALSE,
+                        bc_lower = 0,
+                        bc_higher = 1) {
     list(
       use.box.cox = box_cox,
       use.trend = trend,
@@ -48,35 +20,42 @@ specials_tbats <- fabletools::new_specials(
       bc.lower = bc_lower,
       bc.upper = bc_higher,
       biasadj = bias_adj
-      )
+    )
   },
   xreg = function(...) {
-    # This model doesn't support exogenous regressors, time to error.
     stop("Exogenous regressors aren't supported by `TBATS()`")
   },
   .required_specials = c("parameters")
 )
+
 #' TBATS model
 #'
-#' @description A \link{fable} wrapper for \link{forecast}[tbats]
-#' @param formula A TBATS model formula (see details).
-#' @param ... Additional arguments (see details).
-#' @return A TBATS model, analogous to other model objects within fable/fabletools.
-#' @details Accepts and parses several model specials.
-#' @note Maybe some other day.
+#' @description Exponential smoothing state space model with Box-Cox
+#' transformation, ARMA errors, trend and trigonometric seasonal components,
+#' with automatic selection of every part, as a fable model. The fitting is
+#' implemented in C++ in this package and follows De Livera, Hyndman and
+#' Snyder (2011).
+#' @param formula A model formula; the response may be followed by a
+#' \code{parameters()} special (see details).
+#' @param ... Further arguments passed to fabletools.
+#' @return A model definition, used like any other fable model.
+#' @details The \code{parameters()} special accepts \code{trend},
+#' \code{damped} and \code{box_cox} (each \code{NULL} to let the search
+#' decide, or \code{TRUE}/\code{FALSE} to pin), \code{seasonal_periods}
+#' (\code{"auto"} to detect them with \code{\link{find_seasonalities}},
+#' \code{NULL} for the period the index implies, or a numeric vector),
+#' \code{arma_errors}, \code{bias_adj}, \code{bc_lower} and \code{bc_higher}.
+#' @references De Livera, A. M., Hyndman, R. J. and Snyder, R. D. (2011).
+#' Forecasting time series with complex seasonal patterns using exponential
+#' smoothing. Journal of the American Statistical Association 106(496),
+#' 1513-1527.
 #' @export
 TBATS <- function(formula, ...) {
-  # Create a model class which combines the training method, specials, and data checks
   model_tbats <- fabletools::new_model_class("TBATS",
-                                             # The training method (more on this later)
                                              train = train_tbats,
-                                             # The formula specials (the next section)
                                              specials = specials_tbats,
-                                             # Any checks of the unprocessed data, like gaps, ordered, regular, etc.
                                              check = function(.data) {
                                                if (!tsibble::is_regular(.data)) stop("Data must be regular")
-                                             }
-  )
-  # Return a model definition which stores the user's model specification
+                                             })
   fabletools::new_model_definition(model_tbats, !!rlang::enquo(formula), ...)
 }

@@ -22,7 +22,11 @@ knitr::opts_chunk$set(
 [![CRAN status](https://www.r-pkg.org/badges/version/fable.tbats)](https://CRAN.R-project.org/package=fable.tbats)
 <!-- badges: end -->
 
-**fable.tbats** is a wrapper around the implementation of **tbats** originally from the [forecast](https://github.com/robjhyndman/forecast) package, though it now works without this dependency. 
+**fable.tbats** provides the BATS and TBATS models of De Livera, Hyndman and Snyder (2011)
+for **fable**. The fitting is implemented in C++ inside the package (a single, dependency-free
+header, `src/tbats/tbats.h`, designed in `src/tbats/DESIGN.md`); it began as a wrapper around the
+[forecast](https://github.com/robjhyndman/forecast) package's implementation, against which it
+is verified. 
 
 ## Installation
 
@@ -69,22 +73,73 @@ test_accuracies <- accuracy(forecasts, test)
 knitr::kable(test_accuracies)
 ```
 
-As does refitting:
+## Simulation
+
+Simulated future sample paths are available through **generate()**. Innovations are
+drawn from a normal distribution with the fitted variance by default, or resampled from
+the innovation residuals with **bootstrap = TRUE**:
+
+```{r}
+paths <- models %>%
+  select(bats, tbats) %>%
+  generate(h = "10 years", times = 20, seed = 1)
+paths
+```
+
+```{r, message=FALSE}
+library(ggplot2)
+paths %>%
+  ggplot(aes(x = Year, y = .sim, group = .rep)) +
+  geom_line(alpha = 0.4) +
+  geom_line(aes(y = Lynx, group = NULL), data = pelt, colour = "steelblue") +
+  facet_wrap(~ .model, ncol = 1) +
+  labs(y = "Lynx")
+```
+
+```{r}
+bootstrapped <- models %>%
+  select(tbats) %>%
+  generate(h = "10 years", times = 20, bootstrap = TRUE, seed = 1)
+```
+
+Note that **residuals()** returns the innovation residuals of the state space model by
+default, which are on the Box-Cox transformed scale when a Box-Cox transformation is
+used. Residuals on the scale of the data are available with **type = "response"**.
+
+## Refitting
+
+Refitting to new data works as well:
 
 ```{r}
 models <- refit( models, pelt )
 ```
 
-Of the functionality available in the **forecast** package, only **forecast::tbats.components()** 
-is missing. 
+### A note on refitting
+
+`refit()` deliberately departs from the forecast package. With the default
+`reestimate = FALSE` the estimated parameters are kept and only the seed states
+(the state vector before the first observation) are re-estimated for the new
+series, because the stored seed states describe the origin of the training
+series and nothing else. The forecast package reuses them unchanged, which is
+only right when the new series starts at the same origin. With
+`reestimate = TRUE` the full model search is repeated on the new data.
+
+## Components
+
+The level, the slope and one seasonal effect per period are available as a dable,
+on the Box-Cox transformed scale when the model uses a transformation:
+
+```{r}
+models %>%
+  select(tbats) %>%
+  components()
+```
+
 
 ## Performance note 
 
-Fitting bats/tbats to a few long series can (potentially) be slower using this wrapper 
-than using the forecast package. This is due to the fact that the internal tbats/bats algorithm 
-always executes sequentially (i.e. with **use.parallel = FALSE** ) to prevent issues with nested parallelism 
-(as the **fabletools::model** function is taken to be responsible for handling parallelization). 
-
-This should never be a problem on many time series, but does lead to a significant slow-down if you are only 
-modelling a single/few time series. Nonetheless, in those cases the [fasster](https://github.com/tidyverts/fasster) package might be much better suited 
-for your use case anyways. 
+The model search runs sequentially; **fabletools::model** is responsible for parallelising
+across series. Like for like (sequential on both sides), the C++ implementation is 1.5 to 3
+times faster than the forecast package's on series from 72 to 5000 observations, with an
+equal or lower AIC in every case; `experiments/benchmark_port.R` reproduces the comparison
+against the implementation this package carried up to version 0.5.0. 

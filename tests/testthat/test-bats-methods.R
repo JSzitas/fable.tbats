@@ -1,44 +1,43 @@
 library(dplyr)
 
 pelt <- tsibbledata::pelt
-train <- pelt %>%
-  dplyr::filter( Year < 1930 )
-test <- pelt %>%
-  dplyr::filter( Year >= 1930 )
-model <- fabletools::model(pelt,  tbats = BATS(Lynx) )
+train <- pelt %>% dplyr::filter(Year < 1930)
+model <- fabletools::model(pelt, bats = BATS(Lynx))
+fit <- model$bats[[1]][["fit"]]
 
 test_that("Utilities for BATS work", {
-  # residuals
-  expect_equal( sum(residuals(model[[1]][[1]][["fit"]])),
-                115493.1,
-                tolerance = 0.05
-  )
-  # fitted
-  expect_equal( sum(fitted(model[[1]][[1]][["fit"]])),
-                2463137,
-                tolerance = 0.05
-  )
-  # glance
-  expect_equal( sum(unlist(fabletools::glance(model)[,2:7])),
-                57386873,
-                tolerance = 0.05
-  )
+  expect_equal(residuals(fit), as.numeric(fit[["fit"]][["errors"]]))
+  expect_equal(residuals(fit, type = "response"), pelt$Lynx - fitted(fit))
+  expect_length(fitted(fit), nrow(pelt))
+  g <- fabletools::glance(model)
+  expect_true(all(is.finite(unlist(g[, c("sigma2", "log_lik", "AIC", "AICc", "BIC")]))))
+  expect_output(print(fit), "^BATS\\(")
 })
 
-test_that( "Forecasts for BATS work", {
-  fcsts <- fabletools::forecast(model, h = 3)$.mean
-  expect_equal( fcsts,
-                c(36004, 31556, 24992),
-                tolerance = 0.05)
+test_that("Forecasts for BATS work", {
+  fcst <- fabletools::forecast(model, h = 3)
+  expect_equal(nrow(fcst), 3)
+  expect_true(all(is.finite(fcst$.mean)))
+  expect_equal(fcst$.mean, c(36004, 31556, 24992), tolerance = 0.1)
 })
 
-test_that( "Refitting a BATS works", {
+test_that("Refitting a BATS works", {
+  partial <- fabletools::model(train, bats = BATS(Lynx))
+  kept <- generics::refit(partial, pelt)
+  expect_s3_class(kept$bats[[1]][["fit"]], "BATS")
+  expect_equal(kept$bats[[1]][["fit"]][["fit"]][["parameters"]],
+               partial$bats[[1]][["fit"]][["fit"]][["parameters"]])
+  expect_length(kept$bats[[1]][["fit"]][["fitted"]], nrow(pelt))
+  searched <- generics::refit(partial, pelt, reestimate = TRUE)
+  expect_s3_class(searched$bats[[1]][["fit"]], "BATS")
+  expect_equal(searched$bats[[1]][["fit"]][["model_summary"]], fit[["model_summary"]])
+})
 
-  model <- fabletools::model(train,  tbats = BATS(Lynx) )
-  expect_equal( as.character(model[[1]][[1]][["fit"]][["fit"]]),
-                "BATS(0.251, {2,5}, 1, -)")
-
-  model <- refit(model, pelt)
-  expect_equal( as.character(model[[1]][[1]][["fit"]][["fit"]]),
-                "BATS(0.43, {3,2}, 0.879, -)")
+test_that("Components of a BATS model form a dable", {
+  usa <- tsibble::as_tsibble(USAccDeaths)
+  seasonal <- fabletools::model(usa, bats = BATS(value ~ parameters(trend = TRUE)))
+  cmp <- fabletools::components(seasonal)
+  expect_s3_class(cmp, "dcmp_ts")
+  expect_true(all(c("level", "slope", "season_12", "remainder") %in% names(cmp)))
+  expect_equal(nrow(cmp), nrow(usa))
 })

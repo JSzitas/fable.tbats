@@ -7,19 +7,22 @@
 BATS(formula, ...)
 }
 \arguments{
-\item{formula}{A TBATS model formula (see details).}
+\item{formula}{A model formula; the response may be followed by a
+\code{parameters()} special (see details).}
 
-\item{...}{Additional arguments (see details).}
+\item{...}{Further arguments passed to fabletools.}
 }
 \value{
-A TBATS model, analogous to other model objects within fable/fabletools.
+A model definition, used like any other fable model.
 }
 \description{
-A \link{fable} wrapper for \link{forecast}[bats]
+Exponential smoothing state space model with Box-Cox
+transformation, ARMA errors, trend and seasonal components represented by
+one state per position in each (integer) period, with automatic selection
+of every part, as a fable model. See \code{\link{TBATS}} for the
+trigonometric representation, which also accepts non-integer periods.
 }
 \details{
-Accepts and parses several model specials.
-}
-\note{
-Maybe some other day.
+The \code{parameters()} special is that of \code{\link{TBATS}};
+\code{seasonal_periods} defaults to the period the index implies.
 }

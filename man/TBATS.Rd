@@ -7,19 +7,32 @@
 TBATS(formula, ...)
 }
 \arguments{
-\item{formula}{A TBATS model formula (see details).}
+\item{formula}{A model formula; the response may be followed by a
+\code{parameters()} special (see details).}
 
-\item{...}{Additional arguments (see details).}
+\item{...}{Further arguments passed to fabletools.}
 }
 \value{
-A TBATS model, analogous to other model objects within fable/fabletools.
+A model definition, used like any other fable model.
 }
 \description{
-A \link{fable} wrapper for \link{forecast}[tbats]
+Exponential smoothing state space model with Box-Cox
+transformation, ARMA errors, trend and trigonometric seasonal components,
+with automatic selection of every part, as a fable model. The fitting is
+implemented in C++ in this package and follows De Livera, Hyndman and
+Snyder (2011).
 }
 \details{
-Accepts and parses several model specials.
+The \code{parameters()} special accepts \code{trend},
+\code{damped} and \code{box_cox} (each \code{NULL} to let the search
+decide, or \code{TRUE}/\code{FALSE} to pin), \code{seasonal_periods}
+(\code{"auto"} to detect them with \code{\link{find_seasonalities}},
+\code{NULL} for the period the index implies, or a numeric vector),
+\code{arma_errors}, \code{bias_adj}, \code{bc_lower} and \code{bc_higher}.
 }
-\note{
-Maybe some other day.
+\references{
+De Livera, A. M., Hyndman, R. J. and Snyder, R. D. (2011).
+Forecasting time series with complex seasonal patterns using exponential
+smoothing. Journal of the American Statistical Association 106(496),
+1513-1527.
 }

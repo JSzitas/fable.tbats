@@ -328,16 +328,20 @@ build adds that directory.
 
 ## 7. The R side
 
-The fable wrappers keep their specials and methods. The glue file converts
-the series and options to C++, calls the fitter, and returns a list. Trimming
-to the longest run of non-missing values stays in R. Seasonality detection
-(`find_seasonalities`) stays in R. One R constructor builds the fitted object
-for training and both refit paths, so residuals, fitted values and the
-summary string come from one place; refit dispatches on the model class.
-`generate()` calls the C++ simulation with the innovations fabletools or the
-user supplies. The vendored R file, the Armadillo sources and the
-RcppArmadillo dependency are deleted when the glue is switched over; the
-build moves to C++17.
+The fable wrappers keep their specials and methods. The glue file
+(`src/r_interface.cpp`, Rcpp attributes with routine registration) converts
+the series and options to C++, calls the fitter, and returns a list; the
+fitted model lives in R as that list and is rebuilt in C++ for forecasting,
+simulation, components and refit, so no C++ object outlives a call. Missing
+values are rejected with a message rather than trimmed. Seasonality
+detection (`find_seasonalities`) stays in R. One R constructor
+(`new_bats_tbats_fit` in `R/fit.R`) builds the fitted object for training
+and both refit paths, so residuals, fitted values and the summary string
+come from one place; refit dispatches on the model class. `generate()`
+calls the C++ simulation with the innovations fabletools or the user
+supplies. The vendored R file, the Armadillo sources and the RcppArmadillo
+dependency are gone; the build is C++17 with the two vendored headers on
+the include path.
 
 ## 8. Verification
 
