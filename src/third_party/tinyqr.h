@@ -28,6 +28,8 @@
 #include <array>
 #include <cmath>
 #include <complex>
+#include <cstdint>
+#include <cstring>
 #include <iostream>
 #include <limits>
 #include <optional>
@@ -109,10 +111,14 @@ inline INLINE_THIS scalar_t inv_sqrt(scalar_t x) {
 template <>
 [[maybe_unused]] inline INLINE_THIS float inv_sqrt(float x) {
   // technically omits any refinement via Newton-Raphson, but that is not
-  // necessary for our purposes
-  long i = *reinterpret_cast<long *>(&x);  // NOLINT [runtime/int]
+  // necessary for our purposes. The bit pattern is moved through memcpy:
+  // reading a float through a pointer to another type is undefined, and
+  // the previous `long` read eight bytes of a four byte float.
+  std::uint32_t i;
+  std::memcpy(&i, &x, sizeof i);
   i = 0x5f3759df - (i >> 1);
-  return *reinterpret_cast<float *>(&i);
+  std::memcpy(&x, &i, sizeof x);
+  return x;
 }
 [[maybe_unused]] inline INLINE_THIS double inv_sqrt(double x) {
   return 1.0 / std::sqrt(x);
@@ -673,7 +679,7 @@ class [[maybe_unused]] QRSolver {
   std::vector<scalar_t> Ak, QQ, Q, R, temp, eigval;
 
  public:
-  [[maybe_unused]] explicit QRSolver<scalar_t>(const size_t n) : n(n) {
+  [[maybe_unused]] explicit QRSolver(const size_t n) : n(n) {
     // TODO(JSzitas): replace with arena
     this->Ak = std::vector<scalar_t>(n * n);
     this->QQ = std::vector<scalar_t>(n * n, 0.0);

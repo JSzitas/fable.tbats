@@ -832,7 +832,7 @@ namespace nlsolver::rng {
 #define MAX_SIZE_64_BIT_UINT (18446744073709551615U)
 template <typename scalar_t = float>
 struct [[maybe_unused]] halton {
-  explicit halton<scalar_t>(const scalar_t base = 2)
+  explicit halton(const scalar_t base = 2)
       : b(base), y(1), n(0), d(1), x(1) {}
   scalar_t yield() {
     x = d - n;
@@ -881,7 +881,7 @@ struct [[maybe_unused]] halton {
 
 template <typename scalar_t = float>
 struct [[maybe_unused]] recurrent {
-  recurrent<scalar_t>() : seed_(0.5), alpha_(0.618034), z_(alpha_ + seed_) {
+  recurrent() : seed_(0.5), alpha_(0.618034), z_(alpha_ + seed_) {
     this->z_ -= static_cast<scalar_t>(static_cast<uint64_t>(this->z_));
   }
   [[maybe_unused]] explicit recurrent(scalar_t seed)
@@ -917,7 +917,7 @@ struct [[maybe_unused]] recurrent {
 
 template <typename scalar_t = float>
 struct splitmix {
-  explicit splitmix<scalar_t>() : s(12374563468) {}
+  explicit splitmix() : s(12374563468) {}
   scalar_t yield() {
     uint64_t result = (s += 0x9E3779B97f4A7C15);
     result = (result ^ (result >> 30)) * 0xBF58476D1CE4E5B9;
@@ -948,7 +948,7 @@ struct splitmix {
 };
 template <typename scalar_t = float>
 struct xoshiro {
-  xoshiro<scalar_t>() {  // NOLINT
+  xoshiro() {  // NOLINT
     splitmix<scalar_t> gn;
     // seed each 64-bit word from an independent splitmix draw; the previous
     // code derived words via >>32 (half the bits zero) and assigned a (0,1)
@@ -1006,7 +1006,7 @@ struct xoshiro {
 
 template <typename scalar_t = float>
 struct xorshift {
-  xorshift<scalar_t>() {  // NOLINT
+  xorshift() {  // NOLINT
     splitmix<scalar_t> gn;
     // independent draws (was x[1] = x[0] >> 32, leaving half the bits zero)
     x[0] = gn.yield_init();
@@ -1595,10 +1595,10 @@ inline scalar_t max_abs_vec(const std::vector<scalar_t> &x) {
 }
 template <typename scalar_t = double>
 struct simplex {
-  explicit simplex<scalar_t>(const size_t i = 0) {
+  explicit simplex(const size_t i = 0) {
     this->vals = std::vector<std::vector<scalar_t>>(i + 1);
   }
-  explicit simplex<scalar_t>(const std::vector<scalar_t> &x,
+  explicit simplex(const std::vector<scalar_t> &x,
                              const scalar_t step = -1) {
     std::vector<std::vector<scalar_t>> init_simplex(x.size() + 1);
     // init_simplex[0] = x;
@@ -1747,7 +1747,7 @@ static inline scalar_t std_err(const std::vector<scalar_t> &x) {
 
 template <typename scalar_t = double>
 struct solver_status {
-  solver_status<scalar_t>(const scalar_t f_val, const size_t iter_used,
+  solver_status(const scalar_t f_val, const size_t iter_used,
                           const size_t f_calls_used,
                           const size_t grad_evals_used = 0ul,
                           const size_t hess_evals_used = 0ul,
@@ -1810,7 +1810,7 @@ class NelderMead {
 
  public:
   // constructor
-  explicit NelderMead<Callable, scalar_t>(
+  explicit NelderMead(
       Callable &f, const scalar_t step = -1, const scalar_t alpha = 1,
       const scalar_t gamma = 2, const scalar_t rho = 0.5,
       const scalar_t sigma = 0.5, const scalar_t eps = 1e-6,
@@ -2091,7 +2091,7 @@ class DE {
 
  public:
   // constructor
-  [[maybe_unused]] DE<Callable, RNG, scalar_t, RecombinationType>(
+  [[maybe_unused]] DE(
       Callable &f, RNG &generator, const scalar_t crossover_prob = 0.9,
       const scalar_t differential_weight = 0.8, const scalar_t eps = 1e-3,
       const size_t pop_size = 50, const size_t max_iter = 1000,
@@ -2263,7 +2263,7 @@ class PSO {
   const scalar_t eps;
 
  public:
-  [[maybe_unused]] PSO<Callable, RNG, scalar_t, Type>(
+  [[maybe_unused]] PSO(
       Callable &f, RNG &generator, const scalar_t inertia = 0.8,
       const scalar_t cognitive_coef = 1.8, const scalar_t social_coef = 1.8,
       const size_t n_particles = 10, const size_t max_iter = 5000,
@@ -2506,7 +2506,7 @@ class SANN {
   const scalar_t temperature_max;
 
  public:
-  [[maybe_unused]] SANN<Callable, RNG, scalar_t>(
+  [[maybe_unused]] SANN(
       Callable &f, RNG &generator, const size_t max_iter = 5000,
       const size_t temperature_iter = 10, const scalar_t temperature_max = 10.0)
       : generator(generator),
@@ -2718,8 +2718,7 @@ class GradientDescent {
   std::vector<scalar_t> search_direction, linesearch_temp, gradient_temp;
 
  public:
-  explicit GradientDescent<Callable, scalar_t, step, bigstep_level,
-                           grad_norm_lipschitz_scaling, Grad>(
+  explicit GradientDescent(
       Callable &f, const scalar_t alpha = 1, const size_t max_iter = 500,
       const scalar_t grad_eps = 1e-12, const size_t minibatch_b = 128,
       const size_t minibatch_b_prime = 11,
@@ -2900,7 +2899,7 @@ class ConjugatedGradientDescent {
   const scalar_t grad_eps, alpha;
 
  public:
-  explicit ConjugatedGradientDescent<Callable, scalar_t, Grad>(
+  explicit ConjugatedGradientDescent(
       Callable &f, Grad g = fin_diff<Callable, scalar_t>(),
       const size_t max_iter = 500, const scalar_t grad_eps = 5e-3,
       const scalar_t alpha =
@@ -3071,7 +3070,7 @@ class BFGS {
 
  public:
   // constructor
-  explicit BFGS<Callable, scalar_t, Grad>(
+  explicit BFGS(
       Callable &f, Grad g = Grad(), const size_t max_iter = 200,
       const scalar_t grad_eps = 1e-7, const scalar_t alpha = 1,
       const BFGSLineSearch line_search = Armijo)
@@ -3450,7 +3449,7 @@ class [[maybe_unused]] LevenbergMarquardt {
 
  public:
   // constructor
-  explicit LevenbergMarquardt<Callable, scalar_t, Grad, Hess>(
+  explicit LevenbergMarquardt(
       Callable &f, const scalar_t lambda = 10, const scalar_t upward_mult = 10,
       const scalar_t downward_mult = 10, const size_t max_iter = 100,
       const scalar_t f_delta = 1e-12, Grad g = fin_diff<Callable, scalar_t>(),
@@ -4602,7 +4601,7 @@ class [[maybe_unused]] CMAES {
 
  public:
   // constructor
-  [[maybe_unused]] CMAES<Callable, RNG, scalar_t>(
+  [[maybe_unused]] CMAES(
       Callable &f, RNG &generator, const scalar_t m_step = 0.5,
       const size_t max_iter = 1000, const scalar_t condition = 1e14,
       const scalar_t x_delta = 1e-12, const scalar_t f_delta = 1e-12,
@@ -4870,7 +4869,7 @@ class [[maybe_unused]] OnePlusOneCMAES {
   // O(n) transient. `pattern_moves` enables the doubling described above; the
   // expansions do not enter the success-rate statistics, but the covariance
   // learns the whole displacement.
-  [[maybe_unused]] OnePlusOneCMAES<Callable, RNG, scalar_t>(
+  [[maybe_unused]] OnePlusOneCMAES(
       Callable &f, RNG &generator, const scalar_t m_step = 0.5,
       const size_t max_evals = 1000, const scalar_t x_delta = 1e-12,
       const scalar_t damping = 0.0, const bool pattern_moves = false)
@@ -5051,7 +5050,7 @@ class [[maybe_unused]] PatternSearch {
   static constexpr scalar_t kContract = 0.5;
 
  public:
-  [[maybe_unused]] PatternSearch<Callable, scalar_t>(
+  [[maybe_unused]] PatternSearch(
       Callable &f, const scalar_t m_step = 1.0, const size_t max_evals = 1000,
       const scalar_t x_delta = 1e-12)
       : f(f), m_step(m_step), max_evals(max_evals), x_delta(x_delta) {}
@@ -5154,7 +5153,7 @@ class [[maybe_unused]] AdaptiveCoordinateDescent {
   const scalar_t line_tol;
 
  public:
-  [[maybe_unused]] AdaptiveCoordinateDescent<Callable, scalar_t>(
+  [[maybe_unused]] AdaptiveCoordinateDescent(
       Callable &f, const scalar_t m_step = 1.0, const size_t max_iter = 1000,
       const scalar_t x_delta = 1e-12, const scalar_t f_delta = 1e-12,
       const scalar_t line_tol = 0.0)
@@ -5505,7 +5504,7 @@ class [[maybe_unused]] LBFGSB {
   const size_t max_evals;
 
  public:
-  [[maybe_unused]] explicit LBFGSB<Callable, scalar_t, Grad>(
+  [[maybe_unused]] explicit LBFGSB(
       Callable &f, Grad g = Grad(), const size_t max_iter = 200,
       const scalar_t grad_eps = 1e-7, const size_t history_size = 10,
       std::vector<scalar_t> initial_inverse_hessian = {},
@@ -5776,7 +5775,7 @@ class [[maybe_unused]] Alloy {
   static constexpr scalar_t kHalfWidthMin = 1.0, kHalfWidthMax = 10.0;
 
  public:
-  [[maybe_unused]] Alloy<Callable, RNG, scalar_t>(Callable &f, RNG &generator,
+  [[maybe_unused]] Alloy(Callable &f, RNG &generator,
                                                   const size_t max_evals = 5000)
       : f(f), generator(generator), max_evals(max_evals) {}
   // minimize interface
@@ -6328,7 +6327,7 @@ class [[maybe_unused]] Composite {
   static constexpr scalar_t kCondition = 1e14, kCostSpread = 1e-12;
 
  public:
-  [[maybe_unused]] Composite<Callable, RNG, scalar_t>(
+  [[maybe_unused]] Composite(
       Callable &f, RNG &generator, const scalar_t m_step = 0.5,
       const size_t max_evals = 10000, const size_t elites = 8,
       const size_t max_restarts = 0, const scalar_t switch_step = 1e-2,
