@@ -33,9 +33,11 @@ test_that("zero innovations reproduce the point forecasts", {
   future$.innov <- 0
   sims <- fabletools::generate(models, new_data = future)
 
+  # the back-transformed point forecast is the median of the forecast
+  # distribution; with a Box-Cox transformation the mean sits above it
   for (name in c("bats", "tbats")) {
     expect_equal(sims$.sim[sims$.model == name],
-                 fcst$.mean[fcst$.model == name])
+                 stats::median(fcst$Lynx[fcst$.model == name]))
   }
 })
 
@@ -57,9 +59,9 @@ test_that("simulated paths are centred on the forecast", {
   fcst <- fabletools::forecast(models, h = 1)
   sims <- fabletools::generate(models, h = 1, times = 2000, seed = 1)
   # innovations are symmetric on the Box-Cox scale, so the median of the
-  # back-transformed paths is the point forecast
+  # back-transformed paths is the median of the forecast distribution
   medians <- tapply(sims$.sim, sims$.model, median)
-  expect_equal(as.numeric(medians[fcst$.model]), fcst$.mean, tolerance = 0.05)
+  expect_equal(as.numeric(medians[fcst$.model]), stats::median(fcst$Lynx), tolerance = 0.05)
 })
 
 test_that("bootstrap resamples the innovation residuals", {
@@ -85,5 +87,5 @@ test_that("generate works for a seasonal TBATS model", {
   future <- tsibble::new_data(usa, 24)
   future$.innov <- 0
   sims <- fabletools::generate(seasonal, new_data = future)
-  expect_equal(sims$.sim, fcst$.mean)
+  expect_equal(sims$.sim, stats::median(fcst$value))
 })

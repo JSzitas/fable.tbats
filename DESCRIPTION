@@ -1,7 +1,7 @@
 Package: fable.tbats
 Type: Package
 Title: BATS and TBATS Models for Fable
-Version: 0.6.0
+Version: 1.0.0
 Author: Juraj Szitas
 Maintainer: <juraj.szitas13@gmail.com>
 Description: BATS and TBATS exponential smoothing state space models

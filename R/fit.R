@@ -87,14 +87,18 @@ bats_tbats_residuals <- function(object, type) {
          NULL)
 }
 
-# A normal forecast distribution on the original scale, its standard
-# deviation taken from the upper 80 percent bound as the package has always
-# done; for a Box-Cox model the exact interval is asymmetric.
+# The forecast distribution: normal on the model scale, mapped back through
+# the inverse Box-Cox transformation when the model uses one, so quantiles
+# are exact and the mean is the bias-adjusted mean the transformation implies.
 forecast_bats_tbats <- function(object, new_data) {
-  h <- nrow(new_data)
-  fc <- tbats_forecast(object[["fit"]], h, 80, isTRUE(object$model_pars$biasadj))
-  st_dev <- (fc$upper - fc$mean) / abs(stats::qnorm((100 - 80) / 200))
-  distributional::dist_normal(fc$mean, st_dev)
+  fit <- object[["fit"]]
+  fc <- tbats_forecast(fit, nrow(new_data), 80, isTRUE(object$model_pars$biasadj))
+  model_scale <- distributional::dist_normal(fc$mean_model_scale, sqrt(fc$variance_model_scale))
+  if (!fit$spec$box_cox) return(model_scale)
+  lambda <- fit$parameters$lambda
+  distributional::dist_transformed(model_scale,
+                                   transform = function(x) fabletools::inv_box_cox(x, lambda),
+                                   inverse = function(x) fabletools::box_cox(x, lambda))
 }
 
 generate_bats_tbats <- function(object, new_data) {

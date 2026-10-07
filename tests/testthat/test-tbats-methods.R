@@ -26,6 +26,13 @@ test_that("Forecasts for TBATS work", {
   # percent of them
   expect_equal(fcst$.mean, c(36004, 31556, 24992), tolerance = 0.1)
   expect_true(all(distributional::variance(fcst$Lynx) > 0))
+  # a Box-Cox model forecasts a transformed distribution: exact, asymmetric
+  # intervals and a mean above the median
+  if (fit[["fit"]][["spec"]][["box_cox"]]) {
+    interval <- distributional::hilo(fcst$Lynx, 80)
+    expect_true(all(interval$upper - fcst$.mean != fcst$.mean - interval$lower))
+    expect_true(all(fcst$.mean > stats::median(fcst$Lynx)))
+  }
 })
 
 test_that("Refitting a TBATS works", {

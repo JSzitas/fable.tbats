@@ -1,4 +1,4 @@
-# fable.tbats 0.6.0
+# fable.tbats 1.0.0
 
 * The fitting is now implemented in C++ inside this package
   (`src/tbats/tbats.h`, a single header that depends only on the standard
@@ -10,6 +10,13 @@
   reproduce it to tight tolerances, and the model searches reach an equal or
   lower AIC on every test series. Sequential searches run 1.5 to 3 times
   faster than before.
+* Forecasts of a Box-Cox model are now a transformed distribution: the
+  normal forecast on the transformed scale mapped back through the inverse
+  Box-Cox transformation. Quantiles and prediction intervals are exact (and
+  asymmetric), `.mean` is the second-order bias-adjusted mean that
+  distributional computes, and the median is the back-transformed point
+  forecast. Previously a normal distribution was fitted to the 80 percent
+  bound on the original scale. `bias_adj` now affects fitted values only.
 * `components()` is available for both models.
 * `refit()` with the default `reestimate = FALSE` keeps the estimated
   parameters and re-estimates the seed states for the new series;

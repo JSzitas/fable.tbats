@@ -45,6 +45,10 @@ specials_tbats <- fabletools::new_specials(
 #' (\code{"auto"} to detect them with \code{\link{find_seasonalities}},
 #' \code{NULL} for the period the index implies, or a numeric vector),
 #' \code{arma_errors}, \code{bias_adj}, \code{bc_lower} and \code{bc_higher}.
+#' With a Box-Cox transformation the forecast distribution is the normal
+#' forecast on the transformed scale mapped back through the inverse
+#' transformation, so its quantiles are exact and its mean is the
+#' bias-adjusted mean; \code{bias_adj} controls the fitted values only.
 #' @references De Livera, A. M., Hyndman, R. J. and Snyder, R. D. (2011).
 #' Forecasting time series with complex seasonal patterns using exponential
 #' smoothing. Journal of the American Statistical Association 106(496),
