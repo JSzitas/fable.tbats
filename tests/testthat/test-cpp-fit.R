@@ -116,6 +116,9 @@ for (case_name in names(fit_cases)) {
     reference <- reference_neg2loglik(m, y)
     expect_true(is.finite(fit$neg2loglik))
     expect_lte(fit$neg2loglik, reference + fit_tolerance * abs(reference))
+    # the forecastability check runs only on improving points during the
+    # optimisation; the returned optimum must still be admissible in full
+    expect_true(tbats_call("tbats_neg2loglik", spec, fit$parameters, y, fit$seed_states)$admissible)
     cat(sprintf("    %-45s reference %10.3f  port %10.3f  (%d evaluations, %.1fs)\n",
                 case_name, reference, fit$neg2loglik, fit$evaluations, elapsed))
   })

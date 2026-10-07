@@ -176,11 +176,24 @@ deviation over the simplex values.
 The parameters (w, alpha, phi, beta, gammas, ar, ma; each present only when
 the specification has it) are packed into one vector and scaled per entry
 before optimisation, with the scales of the forecast package kept as named
-constants. The default optimiser is Nelder-Mead from nlsolver. The optimiser
-is a runtime choice: an enumeration in the fit options is dispatched once,
-at setup, to the nlsolver solver class; the likelihood functor is the same
-for all of them (any solver that accepts a functor and a start vector can be
-added by one case in that switch).
+constants. The default optimiser is Nelder-Mead from nlsolver, with two
+restarts. The optimiser is a runtime choice: an enumeration in the fit
+options is dispatched once, at setup, to the nlsolver solver class; the
+likelihood functor is the same for all of them (any solver that accepts a
+functor and a start vector can be added by one case in that switch).
+
+The forecastability check, the eigenvalues of D, is cubic in the state
+dimension and dominates an evaluation for wide dummy-seasonal models. A
+point whose likelihood is worse than the best admissible value seen so far
+can never become the returned optimum, so checking only improving points
+before they are accepted as the new best still returns an admissible
+optimum (the final pass verifies it in full). It does not follow the same
+path, though: a non-improving inadmissible point then sits in the simplex
+with its raw value, and on the frozen series that moved two searches to a
+worse local optimum while saving nothing at their state dimensions. The
+default therefore checks every evaluation up to 64 states, where the check
+costs under half a millisecond, and only improving points above, where it
+would cost tens of milliseconds per evaluation; both are selectable.
 
 ### 3.5 Model search
 
@@ -232,8 +245,12 @@ its block's observation weights applied to the block.
 ## 4. ARMA order selection by exact likelihood
 
 The ARMA orders are chosen on the errors of the fit without ARMA terms by
-minimising AIC over p, q in 0..5, each candidate fitted by exact Gaussian
-maximum likelihood with a mean term, as R's `arima` does. The coefficients
+AIC over p, q in 0..5, each candidate fitted by exact Gaussian maximum
+likelihood with a mean term, as R's `arima` does. By default the orders are
+visited stepwise, as auto.arima does: four starting orders, then the six
+neighbours of the best fitted so far until none improves, every order
+fitted once, typically ten to fifteen fits; the full grid of thirty-six is
+an option. The forecast package fits the full grid. The coefficients
 found here are only starting points: they are re-estimated inside the TBATS
 likelihood. Exact likelihood is preferred over conditional sum of squares
 because conditional sum of squares discards the first p observations and

@@ -231,8 +231,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // tbats_fit_specific
-Rcpp::List tbats_fit_specific(Rcpp::List spec, std::vector<double> y, double init_lambda, Rcpp::List optimizer, bool bias_adjust);
-RcppExport SEXP _fable_tbats_tbats_fit_specific(SEXP specSEXP, SEXP ySEXP, SEXP init_lambdaSEXP, SEXP optimizerSEXP, SEXP bias_adjustSEXP) {
+Rcpp::List tbats_fit_specific(Rcpp::List spec, std::vector<double> y, double init_lambda, Rcpp::List optimizer, bool bias_adjust, std::string forecastability);
+RcppExport SEXP _fable_tbats_tbats_fit_specific(SEXP specSEXP, SEXP ySEXP, SEXP init_lambdaSEXP, SEXP optimizerSEXP, SEXP bias_adjustSEXP, SEXP forecastabilitySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -241,7 +241,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type init_lambda(init_lambdaSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type optimizer(optimizerSEXP);
     Rcpp::traits::input_parameter< bool >::type bias_adjust(bias_adjustSEXP);
-    rcpp_result_gen = Rcpp::wrap(tbats_fit_specific(spec, y, init_lambda, optimizer, bias_adjust));
+    Rcpp::traits::input_parameter< std::string >::type forecastability(forecastabilitySEXP);
+    rcpp_result_gen = Rcpp::wrap(tbats_fit_specific(spec, y, init_lambda, optimizer, bias_adjust, forecastability));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -274,8 +275,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // tbats_arma_select
-Rcpp::List tbats_arma_select(std::vector<double> y, int max_p, int max_q, Rcpp::List optimizer);
-RcppExport SEXP _fable_tbats_tbats_arma_select(SEXP ySEXP, SEXP max_pSEXP, SEXP max_qSEXP, SEXP optimizerSEXP) {
+Rcpp::List tbats_arma_select(std::vector<double> y, int max_p, int max_q, Rcpp::List optimizer, std::string search);
+RcppExport SEXP _fable_tbats_tbats_arma_select(SEXP ySEXP, SEXP max_pSEXP, SEXP max_qSEXP, SEXP optimizerSEXP, SEXP searchSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -283,7 +284,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type max_p(max_pSEXP);
     Rcpp::traits::input_parameter< int >::type max_q(max_qSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type optimizer(optimizerSEXP);
-    rcpp_result_gen = Rcpp::wrap(tbats_arma_select(y, max_p, max_q, optimizer));
+    Rcpp::traits::input_parameter< std::string >::type search(searchSEXP);
+    rcpp_result_gen = Rcpp::wrap(tbats_arma_select(y, max_p, max_q, optimizer, search));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -306,10 +308,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_fable_tbats_tbats_guerrero_lambda", (DL_FUNC) &_fable_tbats_tbats_guerrero_lambda, 4},
     {"_fable_tbats_tbats_seed_states", (DL_FUNC) &_fable_tbats_tbats_seed_states, 3},
     {"_fable_tbats_tbats_neg2loglik", (DL_FUNC) &_fable_tbats_tbats_neg2loglik, 4},
-    {"_fable_tbats_tbats_fit_specific", (DL_FUNC) &_fable_tbats_tbats_fit_specific, 5},
+    {"_fable_tbats_tbats_fit_specific", (DL_FUNC) &_fable_tbats_tbats_fit_specific, 6},
     {"_fable_tbats_tbats_arma_loglik", (DL_FUNC) &_fable_tbats_tbats_arma_loglik, 4},
     {"_fable_tbats_tbats_arma_fit", (DL_FUNC) &_fable_tbats_tbats_arma_fit, 4},
-    {"_fable_tbats_tbats_arma_select", (DL_FUNC) &_fable_tbats_tbats_arma_select, 4},
+    {"_fable_tbats_tbats_arma_select", (DL_FUNC) &_fable_tbats_tbats_arma_select, 5},
     {NULL, NULL, 0}
 };
 

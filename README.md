@@ -63,22 +63,22 @@ train_accuracies <- accuracy(models)
 knitr::kable(train_accuracies)
 ```
 
-| .model | .type    |         ME |     RMSE |      MAE |         MPE |     MAPE |      MASE |    RMSSE |      ACF1 |
-| :----- | :------- | ---------: | -------: | -------: | ----------: | -------: | --------: | -------: | --------: |
-| ets    | Training | \-77.59902 | 12891.89 | 9824.778 | \-20.073965 | 52.20456 | 0.9934890 | 0.994821 | 0.5352087 |
-| bats   | Training | 1392.44848 |  7379.92 | 5278.277 |  \-5.144096 | 26.54557 | 0.5337433 | 0.569482 | 0.1121255 |
-| tbats  | Training | 1392.44848 |  7379.92 | 5278.277 |  \-5.144096 | 26.54557 | 0.5337433 | 0.569482 | 0.1121255 |
+| .model | .type    |         ME |     RMSE |      MAE |         MPE |     MAPE |     MASE |     RMSSE |      ACF1 |
+| :----- | :------- | ---------: | -------: | -------: | ----------: | -------: | -------: | --------: | --------: |
+| ets    | Training | \-77.59902 | 12891.89 | 9824.778 | \-20.073965 | 52.20456 | 0.993489 | 0.9948210 | 0.5352087 |
+| bats   | Training |  690.54347 |  7463.20 | 5334.552 |  \-8.142754 | 27.43139 | 0.539434 | 0.5759084 | 0.1237459 |
+| tbats  | Training |  690.54347 |  7463.20 | 5334.552 |  \-8.142754 | 27.43139 | 0.539434 | 0.5759084 | 0.1237459 |
 
 ``` r
 test_accuracies <- accuracy(forecasts, test)
 knitr::kable(test_accuracies)
 ```
 
-| .model | .type |         ME |      RMSE |      MAE |        MPE |     MAPE | MASE | RMSSE |      ACF1 |
-| :----- | :---- | ---------: | --------: | -------: | ---------: | -------: | ---: | ----: | --------: |
-| bats   | Test  | \-5633.486 |  6023.186 | 5633.486 | \-36.94826 | 36.94826 |  NaN |   NaN | 0.3453116 |
-| ets    | Test  |   1061.473 | 10669.984 | 9770.000 | \-36.63239 | 71.41690 |  NaN |   NaN | 0.5558575 |
-| tbats  | Test  | \-5633.486 |  6023.186 | 5633.486 | \-36.94826 | 36.94826 |  NaN |   NaN | 0.3453116 |
+| .model | .type |        ME |      RMSE |      MAE |         MPE |     MAPE | MASE | RMSSE |      ACF1 |
+| :----- | :---- | --------: | --------: | -------: | ----------: | -------: | ---: | ----: | --------: |
+| bats   | Test  | \-428.427 |  5237.774 | 4248.271 |  \-3.644561 | 22.81582 |  NaN |   NaN | 0.2483518 |
+| ets    | Test  |  1061.473 | 10669.984 | 9770.000 | \-36.632392 | 71.41690 |  NaN |   NaN | 0.5558575 |
+| tbats  | Test  | \-428.427 |  5237.774 | 4248.271 |  \-3.644561 | 22.81582 |  NaN |   NaN | 0.2483518 |
 
 ## Simulation
 
@@ -96,16 +96,16 @@ paths
 #> # Key:       .model, .rep [40]
 #>    .model .rep   Year   .sim
 #>    <chr>  <chr> <dbl>  <dbl>
-#>  1 bats   1      1930  9346.
-#>  2 bats   1      1931  9605.
-#>  3 bats   1      1932 11259.
-#>  4 bats   1      1933 30683.
-#>  5 bats   1      1934 51495.
-#>  6 bats   1      1935 48862.
-#>  7 bats   1      1936 45434.
-#>  8 bats   1      1937 38059.
-#>  9 bats   1      1938 29363.
-#> 10 bats   1      1939 17253.
+#>  1 bats   1      1930  7425.
+#>  2 bats   1      1931  5313.
+#>  3 bats   1      1932  4941.
+#>  4 bats   1      1933 18748.
+#>  5 bats   1      1934 42231.
+#>  6 bats   1      1935 52209.
+#>  7 bats   1      1936 59523.
+#>  8 bats   1      1937 56971.
+#>  9 bats   1      1938 44430.
+#> 10 bats   1      1939 24249.
 #> # ℹ 390 more rows
 ```
 
@@ -166,16 +166,16 @@ models %>%
 #> # :        Lynx = NULL
 #>    .model  Year  Lynx level remainder
 #>    <chr>  <dbl> <dbl> <dbl>     <dbl>
-#>  1 tbats   1845 30090  119.     12.2 
-#>  2 tbats   1846 45150  119.     20.6 
-#>  3 tbats   1847 49150  120.      5.42
-#>  4 tbats   1848 39520  120.     -2.86
-#>  5 tbats   1849 21230  120.    -14.7 
-#>  6 tbats   1850  8420  119.    -17.9 
-#>  7 tbats   1851  5560  119.     -4.74
-#>  8 tbats   1852  5080  118.    -10.5 
-#>  9 tbats   1853 10170  118.      2.28
-#> 10 tbats   1854 19600  118.     -1.25
+#>  1 tbats   1845 30090  133.     22.7 
+#>  2 tbats   1846 45150  141.     22.3 
+#>  3 tbats   1847 49150  149.      6.22
+#>  4 tbats   1848 39520  153.     -2.13
+#>  5 tbats   1849 21230  149.    -13.4 
+#>  6 tbats   1850  8420  138.    -14.4 
+#>  7 tbats   1851  5560  127.      1.54
+#>  8 tbats   1852  5080  117.    -10.5 
+#>  9 tbats   1853 10170  114.      1.16
+#> 10 tbats   1854 19600  116.     -5.00
 #> # ℹ 81 more rows
 ```
 
@@ -183,8 +183,8 @@ models %>%
 
 The model search runs sequentially; **fabletools::model** is responsible
 for parallelising across series. Like for like (sequential on both
-sides), the C++ implementation is 1.5 to 3 times faster than the
-forecast package’s on series from 72 to 5000 observations, with an equal
-or lower AIC in every case; `experiments/benchmark_port.R` reproduces
-the comparison against the implementation this package carried up to
-version 0.5.0.
+sides), the C++ implementation is 3 to 20 times faster than the forecast
+package’s on series from 72 to 5000 observations, with an equal or lower
+AIC in every case; `experiments/benchmark_port.R` reproduces the
+comparison against the implementation this package carried up to version
+0.5.0.

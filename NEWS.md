@@ -8,7 +8,7 @@
 * Fits are verified against the previous implementation: for fixed
   parameters the state space kernel, seed states, likelihood and forecasts
   reproduce it to tight tolerances, and the model searches reach an equal or
-  lower AIC on every test series. Sequential searches run 1.5 to 3 times
+  lower AIC on every test series. Sequential searches run 3 to 20 times
   faster than before.
 * Forecasts of a Box-Cox model are now a transformed distribution: the
   normal forecast on the transformed scale mapped back through the inverse
@@ -17,6 +17,13 @@
   distributional computes, and the median is the back-transformed point
   forecast. Previously a normal distribution was fitted to the 80 percent
   bound on the original scale. `bias_adj` now affects fitted values only.
+* Two further speed-ups, both selectable at runtime through the search
+  options: the ARMA orders are searched stepwise as auto.arima does rather
+  than over the full grid, which leaves the chosen models unchanged on the
+  test series and makes the searches three to seven times faster; and for
+  models with more than 64 states the forecastability check during
+  optimisation runs only on improving points (the returned optimum is still
+  verified in full).
 * `components()` is available for both models.
 * `refit()` with the default `reestimate = FALSE` keeps the estimated
   parameters and re-estimates the seed states for the new series;

@@ -971,6 +971,32 @@ inline bool system_admissible(const System &system) {
 // substitutes the same value for non-finite objectives).
 constexpr double kInadmissibleValue = 1e35;
 
+// When the forecastability check (the eigenvalues of D, cubic in the state
+// dimension) runs during optimisation. A point that is worse than the best
+// value seen so far can never become the returned optimum, so with
+// kOnImprovement only improving points are verified before they are
+// accepted as the new best and the returned optimum is admissible exactly
+// as with kEveryEvaluation; the bounds and ARMA root checks always run.
+// The two settings do not follow the same path, since with kOnImprovement a
+// non-improving inadmissible point can sit in the simplex with its raw
+// value, and on the frozen series that moved two searches to a worse local
+// optimum. kAuto therefore checks every evaluation up to
+// kForecastabilityAutoDim states and on improvement above.
+enum class ForecastabilityCheck { kAuto, kEveryEvaluation, kOnImprovement };
+
+// At 64 states the check costs about half a millisecond per evaluation, a
+// second per fit; at 192 states (daily and weekly dummy periods together)
+// about fifteen milliseconds, half a minute per fit, where checking only
+// improving points is worth a different local optimum.
+constexpr size_t kForecastabilityAutoDim = 64;
+
+inline ForecastabilityCheck resolve_forecastability(const ForecastabilityCheck check,
+                                                    const size_t dim) {
+  if (check != ForecastabilityCheck::kAuto) return check;
+  return dim > kForecastabilityAutoDim ? ForecastabilityCheck::kOnImprovement
+                                       : ForecastabilityCheck::kEveryEvaluation;
+}
+
 // -2 log L up to constants, as a function of the packed parameters:
 //   n log(sum e_t^2) - 2 (lambda - 1) sum log y_t,
 // the second term only with a Box-Cox transformation (the Jacobian). The
@@ -982,8 +1008,11 @@ constexpr double kInadmissibleValue = 1e35;
 class Likelihood {
  public:
   Likelihood(const ModelSpec &spec, const std::vector<double> &y,
-             const std::vector<double> &seed)
+             const std::vector<double> &seed,
+             const ForecastabilityCheck check = ForecastabilityCheck::kEveryEvaluation)
       : spec_(spec),
+        check_(resolve_forecastability(check, StateLayout(spec).dim())),
+        best_(std::numeric_limits<double>::infinity()),
         y_(y),
         seed_(seed),
         scales_(parameter_scales(spec)),
@@ -1027,10 +1056,13 @@ class Likelihood {
     unscaled_.assign(scaled.begin(), scaled.end());
     for (size_t i = 0; i < unscaled_.size(); ++i) unscaled_[i] *= scales_[i];
     unpack_into(spec_, unscaled_, par_);
-    return evaluate(par_);
+    return evaluate(par_, false);
   }
 
-  double evaluate(const Parameters &par) {
+  // The value at `par`, with the full admissibility check.
+  double evaluate(const Parameters &par) { return evaluate(par, true); }
+
+  double evaluate(const Parameters &par, const bool full_check) {
     if (!admissibility::parameters_admissible(spec_, par, roots_)) {
       return kInadmissibleValue;
     }
@@ -1049,9 +1081,13 @@ class Likelihood {
     double value = static_cast<double>(y_.size()) * std::log(sse);
     if (spec_.box_cox) value -= 2.0 * (par.lambda - 1.0) * log_sum_;
     if (!std::isfinite(value)) return kInadmissibleValue;
-    if (!admissibility::system_admissible(system, dense_)) {
+    const bool verify = full_check ||
+                        check_ == ForecastabilityCheck::kEveryEvaluation ||
+                        value < best_;
+    if (verify && !admissibility::system_admissible(system, dense_)) {
       return kInadmissibleValue;
     }
+    if (value < best_) best_ = value;
     return value;
   }
 
@@ -1063,6 +1099,8 @@ class Likelihood {
   }
 
   ModelSpec spec_;
+  ForecastabilityCheck check_;
+  double best_;  // best admissible value seen, for kOnImprovement
   std::vector<double> y_, seed_, scales_;
   double log_sum_;
   System system_;
@@ -1589,10 +1627,88 @@ inline ArmaOrder best_order(const std::vector<ArmaOrder> &grid) {
   return best;
 }
 
+// Stepwise order search: four starting orders, then the six neighbours
+// (p +- 1, q +- 1 singly, and both together) of the best fitted so far,
+// repeated until no neighbour improves, every order fitted once. Typically
+// ten to fifteen fits instead of the full grid's thirty-six; the orders it
+// visits are the ones returned, so the second opinion and the parsimonious
+// candidate draw on them.
+// [[CITATION]] Hyndman and Khandakar (2008), "Automatic time series
+// forecasting: the forecast package for R", Journal of Statistical Software
+// 27(3), section 3.2.
+inline std::vector<ArmaOrder> arma_order_stepwise(const std::vector<double> &y,
+                                                  const size_t max_p,
+                                                  const size_t max_q,
+                                                  const OptimizerSettings &settings) {
+  std::vector<ArmaOrder> visited;
+  auto aic_of = [&](const size_t p, const size_t q) -> double {
+    for (const auto &o : visited) {
+      if (o.p == p && o.q == q) return o.aic;
+    }
+    double aic = std::numeric_limits<double>::infinity();
+    try {
+      aic = fit_arma(y, p, q, settings, false).aic;
+    } catch (const std::exception &) {
+    }
+    if (!std::isfinite(aic)) aic = std::numeric_limits<double>::infinity();
+    visited.push_back({p, q, aic});
+    return aic;
+  };
+  ArmaOrder best{0, 0, std::numeric_limits<double>::infinity()};
+  auto consider = [&](const size_t p, const size_t q) {
+    if (p > max_p || q > max_q) return;
+    const double aic = aic_of(p, q);
+    if (aic < best.aic) best = {p, q, aic};
+  };
+  consider(2, 2);
+  consider(0, 0);
+  consider(1, 0);
+  consider(0, 1);
+  while (true) {
+    const ArmaOrder current = best;
+    const size_t p = current.p, q = current.q;
+    if (p > 0) consider(p - 1, q);
+    consider(p + 1, q);
+    if (q > 0) consider(p, q - 1);
+    consider(p, q + 1);
+    if (p > 0 && q > 0) consider(p - 1, q - 1);
+    consider(p + 1, q + 1);
+    if (best.p == current.p && best.q == current.q) break;
+  }
+  OptimizerSettings other = settings;
+  other.method = other_quasi_newton(settings.method);
+  for (ArmaOrder &order : visited) {
+    if (!std::isfinite(order.aic) || order.aic > best.aic + kSecondOpinionWindow) {
+      continue;
+    }
+    try {
+      order.aic = std::min(order.aic, fit_arma(y, order.p, order.q, other, false).aic);
+    } catch (const std::exception &) {
+    }
+  }
+  std::vector<ArmaOrder> out;
+  for (const auto &o : visited) {
+    if (std::isfinite(o.aic)) out.push_back(o);
+  }
+  return out;
+}
+
+enum class ArmaSearch { kStepwise, kGrid };
+
+inline std::vector<ArmaOrder> arma_orders(const std::vector<double> &y,
+                                          const size_t max_p, const size_t max_q,
+                                          const OptimizerSettings &settings,
+                                          const ArmaSearch search) {
+  return search == ArmaSearch::kGrid
+             ? arma_order_grid(y, max_p, max_q, settings)
+             : arma_order_stepwise(y, max_p, max_q, settings);
+}
+
 inline ArmaOrder select_arma_order(const std::vector<double> &y,
                                    const size_t max_p, const size_t max_q,
-                                   const OptimizerSettings &settings) {
-  return best_order(arma_order_grid(y, max_p, max_q, settings));
+                                   const OptimizerSettings &settings,
+                                   const ArmaSearch search = ArmaSearch::kGrid) {
+  return best_order(arma_orders(y, max_p, max_q, settings, search));
 }
 
 // AIC difference below which two orders are not told apart. The residual
@@ -1652,6 +1768,7 @@ inline Parameters initial_parameters(const ModelSpec &spec,
 struct FitSettings {
   OptimizerSettings optimizer;
   bool bias_adjust = false;  // bias-adjusted fitted values after Box-Cox
+  ForecastabilityCheck forecastability = ForecastabilityCheck::kAuto;
 };
 
 // One specification fitted to one series.
@@ -1704,11 +1821,11 @@ inline FittedSpec fit_specific(const std::vector<double> &y,
   spec.validate();
   const Parameters start = initial_parameters(spec, init_lambda);
   const std::vector<double> seed = seed_states_for(spec, start, y);
-  Likelihood objective(spec, y, seed);
+  Likelihood objective(spec, y, seed, settings.forecastability);
   std::vector<double> x = objective.scale(start);
   const OptimizationResult opt = minimise(settings.optimizer, objective, x);
   const Parameters par = objective.unscale(x);
-  const double neg2loglik = objective.evaluate(par);
+  const double neg2loglik = objective.evaluate(par);  // full check
   const std::vector<double> x0 = objective.seed_for(par);
   const System system(spec, par);
   FilterResult result =
@@ -1745,6 +1862,8 @@ struct SearchOptions {
   OptimizerSettings optimizer;
   OptimizerSettings arma_optimizer = arma::arma_optimizer_defaults();
   size_t max_arma_order = arma::kMaxArmaOrder;
+  arma::ArmaSearch arma_search = arma::ArmaSearch::kStepwise;
+  ForecastabilityCheck forecastability = ForecastabilityCheck::kAuto;
 };
 
 namespace search {
@@ -1805,6 +1924,7 @@ inline std::optional<FittedSpec> try_fit(const std::vector<double> &y,
   FitSettings settings;
   settings.optimizer = options.optimizer;
   settings.bias_adjust = options.bias_adjust;
+  settings.forecastability = options.forecastability;
   try {
     FittedSpec fit = fit_specific(y, spec, init_lambda, settings);
     if (!std::isfinite(fit.aic)) return std::nullopt;
@@ -1832,9 +1952,9 @@ inline std::optional<FittedSpec> with_arma_errors(
   if (!fit || !options.arma_errors) return fit;
   std::vector<arma::ArmaOrder> grid;
   try {
-    grid = arma::arma_order_grid(fit->filter.errors, options.max_arma_order,
-                                 options.max_arma_order,
-                                 options.arma_optimizer);
+    grid = arma::arma_orders(fit->filter.errors, options.max_arma_order,
+                             options.max_arma_order, options.arma_optimizer,
+                             options.arma_search);
   } catch (const std::exception &) {
     return fit;
   }

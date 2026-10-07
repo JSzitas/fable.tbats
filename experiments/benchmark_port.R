@@ -4,9 +4,17 @@
 # -O2 first (pkgbuild::compile_dll(debug = FALSE)); pkgload's default is -O0.
 #
 #   Rscript experiments/benchmark_port.R
+#
+# The reference implementation was removed in version 1.0.0. On a checkout
+# without it the reference columns are taken from the saved table
+# (benchmark_port.rds, timed on the same machine) and only the port is run.
 
 pkgload::load_all(quiet = TRUE)
 fixture_dir <- "tests/testthat/fixtures"
+have_reference <- exists("tbats") && is.function(tbats)
+saved <- if (!have_reference && file.exists("experiments/benchmark_port.rds")) {
+  readRDS("experiments/benchmark_port.rds")
+}
 
 synthetic <- function(n, periods, amplitudes, level, slope, ar, sd, seed) {
   set.seed(seed)
@@ -29,16 +37,26 @@ cases <- list(
 results <- list()
 for (case in cases) {
   for (type in case$types) {
-    reference <- if (type == "tbats") tbats else bats
-    t_ref <- system.time(m_ref <- reference(case$y, seasonal.periods = case$periods, use.parallel = FALSE))[["elapsed"]]
-    t_port <- system.time(m_port <- .Call("tbats_search", case$y, case$periods, type, list(), PACKAGE = "fable.tbats"))[["elapsed"]]
+    if (have_reference) {
+      reference <- if (type == "tbats") tbats else bats
+      t_ref <- system.time(m_ref <- reference(case$y, seasonal.periods = case$periods, use.parallel = FALSE))[["elapsed"]]
+      ref_aic <- m_ref$AIC
+      ref_model <- as.character(m_ref)
+    } else {
+      prior <- saved[saved$series == case$name & saved$search == type, ]
+      if (nrow(prior) != 1) stop("no saved reference timing for ", case$name, " ", type)
+      t_ref <- prior$reference_s
+      ref_aic <- prior$reference_aic
+      ref_model <- prior$reference_model
+    }
+    t_port <- system.time(m_port <- tbats_search(case$y, case$periods, type, list()))[["elapsed"]]
     row <- data.frame(series = case$name, n = length(case$y), periods = paste(case$periods, collapse = ","),
                       search = type, reference_s = t_ref, port_s = t_port, speedup = t_ref / t_port,
-                      reference_aic = m_ref$AIC, port_aic = m_port$aic,
-                      reference_model = as.character(m_ref))
+                      reference_aic = ref_aic, port_aic = m_port$aic,
+                      reference_model = ref_model)
     results[[length(results) + 1]] <- row
     cat(sprintf("%-17s n %5d %-6s %-5s  R %7.1fs  port %6.1fs  x%5.1f   AIC R %10.2f  port %10.2f\n",
-                case$name, length(case$y), row$periods, type, t_ref, t_port, t_ref / t_port, m_ref$AIC, m_port$aic))
+                case$name, length(case$y), row$periods, type, t_ref, t_port, t_ref / t_port, ref_aic, m_port$aic))
   }
 }
 results <- do.call(rbind, results)

@@ -178,6 +178,19 @@ tbats::OptimizerSettings optimizer_from(const Rcpp::List &opt) {
   return o;
 }
 
+tbats::arma::ArmaSearch arma_search_from(const std::string &name) {
+  if (name == "stepwise") return tbats::arma::ArmaSearch::kStepwise;
+  if (name == "grid") return tbats::arma::ArmaSearch::kGrid;
+  Rcpp::stop("arma_search must be 'stepwise' or 'grid'");
+}
+
+tbats::ForecastabilityCheck forecastability_from(const std::string &name) {
+  if (name == "auto") return tbats::ForecastabilityCheck::kAuto;
+  if (name == "on_improvement") return tbats::ForecastabilityCheck::kOnImprovement;
+  if (name == "every_evaluation") return tbats::ForecastabilityCheck::kEveryEvaluation;
+  Rcpp::stop("forecastability must be 'auto', 'on_improvement' or 'every_evaluation'");
+}
+
 tbats::SearchOptions search_options_from(const Rcpp::List &list) {
   tbats::SearchOptions o;
   o.box_cox = optional_flag(list, "box_cox");
@@ -205,6 +218,13 @@ tbats::SearchOptions search_options_from(const Rcpp::List &list) {
   }
   o.max_arma_order = static_cast<std::size_t>(
       scalar_or(list, "max_arma_order", static_cast<double>(o.max_arma_order)));
+  if (list.containsElementNamed("arma_search")) {
+    o.arma_search = arma_search_from(Rcpp::as<std::string>(list["arma_search"]));
+  }
+  if (list.containsElementNamed("forecastability")) {
+    o.forecastability =
+        forecastability_from(Rcpp::as<std::string>(list["forecastability"]));
+  }
   return o;
 }
 
@@ -401,10 +421,12 @@ Rcpp::List tbats_neg2loglik(Rcpp::List spec_list, Rcpp::List par_list,
 // [[Rcpp::export]]
 Rcpp::List tbats_fit_specific(Rcpp::List spec, std::vector<double> y,
                               double init_lambda, Rcpp::List optimizer,
-                              bool bias_adjust) {
+                              bool bias_adjust,
+                              std::string forecastability = "auto") {
   tbats::FitSettings settings;
   settings.optimizer = optimizer_from(optimizer);
   settings.bias_adjust = bias_adjust;
+  settings.forecastability = forecastability_from(forecastability);
   return fitted_to(tbats::fit_specific(y, spec_from(spec), init_lambda, settings));
 }
 
@@ -442,13 +464,16 @@ Rcpp::List tbats_arma_fit(std::vector<double> y, int p, int q,
 
 // [[Rcpp::export]]
 Rcpp::List tbats_arma_select(std::vector<double> y, int max_p, int max_q,
-                             Rcpp::List optimizer) {
+                             Rcpp::List optimizer,
+                             std::string search = "grid") {
   tbats::OptimizerSettings settings = tbats::arma::arma_optimizer_defaults();
   if (optimizer.size() > 0) settings = optimizer_from(optimizer);
-  const tbats::arma::ArmaOrder order = tbats::arma::select_arma_order(
+  const std::vector<tbats::arma::ArmaOrder> orders = tbats::arma::arma_orders(
       y, static_cast<std::size_t>(max_p), static_cast<std::size_t>(max_q),
-      settings);
+      settings, arma_search_from(search));
+  const tbats::arma::ArmaOrder order = tbats::arma::best_order(orders);
   return Rcpp::List::create(Rcpp::Named("p") = static_cast<double>(order.p),
                             Rcpp::Named("q") = static_cast<double>(order.q),
-                            Rcpp::Named("aic") = order.aic);
+                            Rcpp::Named("aic") = order.aic,
+                            Rcpp::Named("fits") = static_cast<double>(orders.size()));
 }

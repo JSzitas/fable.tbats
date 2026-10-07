@@ -69,8 +69,8 @@ tbats_neg2loglik <- function(spec_list, par_list, y, seed) {
     .Call(`_fable_tbats_tbats_neg2loglik`, spec_list, par_list, y, seed)
 }
 
-tbats_fit_specific <- function(spec, y, init_lambda, optimizer, bias_adjust) {
-    .Call(`_fable_tbats_tbats_fit_specific`, spec, y, init_lambda, optimizer, bias_adjust)
+tbats_fit_specific <- function(spec, y, init_lambda, optimizer, bias_adjust, forecastability = "auto") {
+    .Call(`_fable_tbats_tbats_fit_specific`, spec, y, init_lambda, optimizer, bias_adjust, forecastability)
 }
 
 tbats_arma_loglik <- function(y, ar, ma, mean) {
@@ -81,7 +81,7 @@ tbats_arma_fit <- function(y, p, q, optimizer) {
     .Call(`_fable_tbats_tbats_arma_fit`, y, p, q, optimizer)
 }
 
-tbats_arma_select <- function(y, max_p, max_q, optimizer) {
-    .Call(`_fable_tbats_tbats_arma_select`, y, max_p, max_q, optimizer)
+tbats_arma_select <- function(y, max_p, max_q, optimizer, search = "grid") {
+    .Call(`_fable_tbats_tbats_arma_select`, y, max_p, max_q, optimizer, search)
 }
 

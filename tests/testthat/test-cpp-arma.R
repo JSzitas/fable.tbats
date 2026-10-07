@@ -47,3 +47,22 @@ for (series in fixture_series) {
                 series, r_best$p, r_best$q, r_best$aic, sel$p, sel$q, sel$aic))
   })
 }
+
+test_that("the stepwise order search finds interior optima of the grid", {
+  # stepwise cannot promise the grid's best when that lies on the boundary
+  # of the orders behind a ridge (on two of the frozen residual series it
+  # does); where the grid's best is interior it must find it, and it must
+  # always fit fewer orders than the grid. The searches of
+  # test-cpp-search.R show the final models are unchanged either way.
+  for (series in fixture_series) {
+    e <- load_fixture(series)$arma$errors
+    grid <- tbats_call("tbats_arma_select", e, 5, 5, list(), "grid")
+    step <- tbats_call("tbats_arma_select", e, 5, 5, list(), "stepwise")
+    expect_lt(step$fits, grid$fits)
+    if (grid$p < 5 && grid$q < 5) {
+      expect_equal(c(step$p, step$q), c(grid$p, grid$q), label = paste(series, "stepwise order"))
+    }
+    cat(sprintf("    %-14s grid (%d,%d) AIC %.3f in %d fits; stepwise (%d,%d) AIC %.3f in %d fits\n",
+                series, grid$p, grid$q, grid$aic, grid$fits, step$p, step$q, step$aic, step$fits))
+  }
+})

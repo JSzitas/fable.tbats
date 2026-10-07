@@ -139,7 +139,7 @@ models %>%
 ## Performance note 
 
 The model search runs sequentially; **fabletools::model** is responsible for parallelising
-across series. Like for like (sequential on both sides), the C++ implementation is 1.5 to 3
+across series. Like for like (sequential on both sides), the C++ implementation is 3 to 20
 times faster than the forecast package's on series from 72 to 5000 observations, with an
 equal or lower AIC in every case; `experiments/benchmark_port.R` reproduces the comparison
 against the implementation this package carried up to version 0.5.0. 
