@@ -173,6 +173,8 @@ SEXP updateGMatrix(SEXP g_s, SEXP gammaBold_s, SEXP alpha_s, SEXP beta_s, SEXP g
 			for(R_len_t s = 0; s < (LENGTH(seasonalPeriods_s)-1); s++) {
 				position = position + seasonalPeriods[s];
 				bPos = bPos + seasonalPeriods[s];
+				// every seasonal block's gamma, not only the first (as upstream forecast now does)
+				gammaBold(0, bPos) = gammaVector[(s+1)];
 				g(position, 0) = gammaVector[(s+1)];
 			}
 
