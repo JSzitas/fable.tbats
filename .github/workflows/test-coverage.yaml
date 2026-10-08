@@ -1,21 +1,30 @@
-# Workflow derived from https://github.com/r-lib/actions/tree/master/examples
+# Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
 # Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
+#
+# Measures test coverage with covr. On pushes to main it also publishes the
+# result as a shields.io endpoint badge (https://shields.io/badges/endpoint-badge):
+# the JSON is force-pushed as the single commit of the orphan `badges` branch,
+# which the README badge reads. Only the job's own GITHUB_TOKEN is involved, so
+# there is no external service or secret to keep alive.
 on:
   push:
     branches: [main, master]
   pull_request:
     branches: [main, master]
+  workflow_dispatch:
 
 name: test-coverage
 
 jobs:
   test-coverage:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
 
       - uses: r-lib/actions/setup-r@v2
         with:
@@ -23,8 +32,65 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: covr
+          extra-packages: any::covr
+          needs: coverage
 
       - name: Test coverage
-        run: covr::codecov()
+        run: |
+          cov <- covr::package_coverage(
+            quiet = FALSE,
+            clean = FALSE,
+            install_path = file.path(normalizePath(Sys.getenv("RUNNER_TEMP"), winslash = "/"), "package")
+          )
+          print(cov)
+
+          pct <- covr::percent_coverage(cov)
+          by_file <- covr::coverage_to_list(cov)$filecoverage
+
+          # shields.io endpoint badge, see https://shields.io/badges/endpoint-badge
+          colour <- if (pct >= 90) "brightgreen" else if (pct >= 80) "green" else
+            if (pct >= 70) "yellowgreen" else if (pct >= 60) "yellow" else
+            if (pct >= 50) "orange" else "red"
+          badge_dir <- file.path(Sys.getenv("RUNNER_TEMP"), "badge")
+          dir.create(badge_dir, showWarnings = FALSE)
+          writeLines(
+            sprintf('{"schemaVersion": 1, "label": "coverage", "message": "%.1f%%", "color": "%s"}', pct, colour),
+            file.path(badge_dir, "coverage.json")
+          )
+
+          # per-file table in the job summary
+          cat(
+            sprintf("## Test coverage: %.1f%%", pct), "",
+            "| File | Coverage |", "|:--|--:|",
+            sprintf("| `%s` | %.1f%% |", names(by_file), by_file),
+            file = Sys.getenv("GITHUB_STEP_SUMMARY", "/dev/null"), sep = "\n", append = TRUE
+          )
         shell: Rscript {0}
+
+      - name: Show testthat output
+        if: always()
+        run: |
+          ## --------------------------------------------------------------------
+          find '${{ runner.temp }}/package' -name 'testthat.Rout*' -exec cat '{}' \; || true
+        shell: bash
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-test-failures
+          path: ${{ runner.temp }}/package
+
+      - name: Publish coverage badge
+        if: github.ref == 'refs/heads/main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd "$RUNNER_TEMP/badge"
+          git init -q -b badges
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add coverage.json
+          git commit -q -m "Coverage badge for $GITHUB_SHA"
+          git push -q --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:refs/heads/badges
+        shell: bash
